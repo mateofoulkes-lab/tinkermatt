@@ -1,0 +1,45 @@
+/* v0.4.3 — Tinkercad-like palette + in-scene move/rotate controls */
+
+/* The old DOM arrows are now only behavior proxies for the 3D controls. */
+.tm-move-handle,
+.tm-rotate-handle {
+  display: none !important;
+}
+
+/* Tinkercad-style 3 x 12 round preset palette. */
+.material-palette {
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  padding: 5px 2px 2px;
+}
+.color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 50% !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 0 1px #d7dde1 !important;
+  padding: 0 !important;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.color-swatch:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 2px #b7c4cc !important;
+}
+.color-swatch.active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2d7ff9 !important;
+  transform: scale(1.04);
+}
+
+/* Give the 36-color grid enough air without making the inspector bulky. */
+.inspector {
+  width: 286px !important;
+}
+@media (min-width: 1051px) {
+  .inspector { right: 248px !important; }
+}
+
+/* In-scene controls should never change the mouse cursor away from the arrow. */
+.viewport canvas {
+  cursor: default !important;
+}
