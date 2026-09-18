@@ -1,0 +1,101 @@
+/* v0.4.2: semantic zones, reference rows and underside Z handle */
+
+.tm-bottom-z-handle {
+  width: 11px !important;
+  height: 11px !important;
+  border-radius: 1px !important;
+  background: #33444f !important;
+  border: 1px solid #f8fbfd !important;
+  box-shadow: 0 0 0 1px #33444f;
+  z-index: 7;
+  cursor: default !important;
+}
+.tm-bottom-z-handle:hover { background: #0f99d3 !important; box-shadow: 0 0 0 1px #0f99d3; }
+.tm-bottom-z-handle.hidden { display: none !important; }
+
+.tm-zone-tool-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 5px;
+}
+.tm-zone-tool {
+  min-height: 27px;
+  flex: 1;
+  border: 1px solid #cbd9e1;
+  border-radius: 4px;
+  background: #f8fbfd;
+  color: #3f6378;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: default;
+}
+.tm-zone-tool:hover,
+.tm-zone-tool.active {
+  background: #e5f4fb;
+  border-color: #80bfde;
+  color: #087daF;
+}
+.tm-zone-help { color: #94a3ad; font-size: 8px; }
+
+.tm-zone-mode canvas { cursor: crosshair !important; }
+
+.tm-ref-row {
+  min-height: 25px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px;
+  margin: 1px 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: #6a7c87;
+  font-size: 9px;
+  cursor: default;
+  user-select: none;
+}
+.tm-ref-row:hover { background: #f0f7fa; border-color: #d1e5ee; }
+.tm-ref-row.selected { background: #dff2fa; border-color: #91cce5; color: #0b759f; }
+.tm-ref-icon {
+  width: 13px;
+  height: 13px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #7895a5;
+  border-radius: 2px;
+  font-size: 7px;
+  font-weight: 850;
+}
+.tm-ref-row[data-kind="zone"] .tm-ref-icon {
+  background: rgb(0 163 218 / 12%);
+  border-style: solid;
+  border-color: #20a1d2;
+  color: #087daF;
+}
+.tm-ref-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 2px;
+}
+.tm-ref-name[contenteditable="true"] {
+  background: #fff;
+  outline: 1px solid #7fc2df;
+  padding: 2px 4px;
+}
+
+.tm-zone-label {
+  position: absolute;
+  z-index: 12;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  padding: 3px 6px;
+  border: 1px solid #57b9de;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 92%);
+  color: #087ba6;
+  font-size: 8px;
+  font-weight: 800;
+  box-shadow: 0 2px 7px rgb(20 74 98 / 12%);
+}
