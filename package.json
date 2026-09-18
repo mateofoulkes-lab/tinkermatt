@@ -1,6 +1,6 @@
 {
   "name": "tinkermatt",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.0.1",
+    "@fortawesome/free-solid-svg-icons": "^7.0.1",
     "three": "^0.180.0",
     "three-bvh-csg": "^0.0.17"
   },
