@@ -8,7 +8,7 @@ function tinkermattV04Bridge(): Plugin {
       const normalized = id.replace(/\\/g, "/");
       if (!normalized.endsWith("/src/main.ts")) return null;
       return {
-        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./v04\")\n  .then(() => import(\"./v041\"))\n  .then(() => import(\"./v042\"))\n  .then(() => import(\"./v043\"))\n  .then(() => import(\"./v044\"))\n  .then(() => import(\"./v050\"))\n  .then(() => import(\"./v051\"))\n  .then(() => import(\"./v052\"))\n  .then(() => import(\"./v053\"))\n  .then(() => import(\"./v054\"))\n  .then(() => import(\"./v055\"));\n`,
+        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./v04\")\n  .then(() => import(\"./v041\"))\n  .then(() => import(\"./v042\"))\n  .then(() => import(\"./v043\"))\n  .then(() => import(\"./v044\"))\n  .then(() => import(\"./v050\"))\n  .then(() => import(\"./v051\"))\n  .then(() => import(\"./v052\"))\n  .then(() => import(\"./v053\"))\n  .then(() => import(\"./v054\"))\n  .then(() => import(\"./v055\"))\n  .then(() => import(\"./v056\"));\n`,
         map: null,
       };
     },
