@@ -1,0 +1,220 @@
+/* v0.5.0 — advanced primitives + Sketch / Extrude / Revolve */
+
+.tm-v050-family {
+  position: relative;
+  width: 58px;
+  margin: 2px auto;
+}
+.tm-v050-parent {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #425f72;
+  cursor: default;
+}
+.tm-v050-parent:hover {
+  background: #eaf4fa;
+  border-color: #c5deea;
+}
+.tm-v050-parent svg {
+  width: 40px;
+  height: 40px;
+}
+.tm-v050-parent .tm-v050-corner {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: 8px;
+  color: #8497a3;
+}
+.tm-v050-flyout {
+  position: fixed;
+  z-index: 3500;
+  display: flex;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid #ccd8df;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 7px 24px rgb(24 48 65 / 20%);
+}
+.tm-v050-flyout.hidden { display: none; }
+.tm-v050-choice {
+  width: 66px;
+  min-height: 70px;
+  display: grid;
+  grid-template-rows: 44px auto;
+  place-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #486171;
+  font-size: 8px;
+  cursor: default;
+}
+.tm-v050-choice:hover {
+  background: #eaf4fa;
+  border-color: #abd2e5;
+}
+.tm-v050-choice svg { width: 40px; height: 40px; }
+
+.tm-sketch-feature-row {
+  opacity: .92;
+  font-size: 11px;
+  color: #456273;
+}
+.tm-sketch-feature-row .outliner-kind {
+  color: #0b9acb;
+  font-weight: 700;
+}
+
+.tm-sketch-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgb(20 33 44 / 38%);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.tm-sketch-modal.hidden { display: none; }
+.tm-sketch-shell {
+  width: min(1180px, calc(100vw - 40px));
+  height: min(820px, calc(100vh - 40px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid #bdcbd3;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 28%);
+  color: #334d5c;
+}
+.tm-sketch-header,
+.tm-sketch-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 8px 12px;
+  background: #f7f9fb;
+  border-color: #dce4e8;
+}
+.tm-sketch-header { border-bottom: 1px solid #dce4e8; justify-content: space-between; }
+.tm-sketch-footer { border-top: 1px solid #dce4e8; justify-content: space-between; flex-wrap: wrap; }
+.tm-sketch-title { display: flex; align-items: baseline; gap: 10px; }
+.tm-sketch-title b { font-size: 17px; }
+.tm-sketch-title span { font-size: 11px; color: #738995; }
+.tm-sketch-header-actions,
+.tm-sketch-edit-tools,
+.tm-sketch-operation,
+.tm-sketch-confirm,
+.tm-sketch-revolve-fields {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tm-sketch-header button,
+.tm-sketch-footer button,
+.tm-sketch-footer select,
+.tm-sketch-footer input {
+  min-height: 30px;
+  border: 1px solid #c8d4da;
+  border-radius: 5px;
+  background: #fff;
+  color: #385363;
+}
+.tm-sketch-header button,
+.tm-sketch-footer button { padding: 0 10px; }
+.tm-sketch-footer button.primary {
+  background: #0d98cf;
+  border-color: #0d98cf;
+  color: #fff;
+  font-weight: 650;
+}
+.tm-sketch-footer input { width: 70px; padding: 0 6px; }
+.tm-sketch-footer select { padding: 0 24px 0 8px; }
+.tm-sketch-opacity { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.tm-sketch-opacity input { width: 110px; }
+.tm-sketch-ref-name { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: #78909c; }
+.tm-sketch-stage-wrap {
+  position: relative;
+  min-height: 0;
+  background: #fafdff;
+}
+.tm-sketch-stage { width: 100%; height: 100%; display: block; touch-action: none; }
+.tm-sketch-reference-image { mix-blend-mode: multiply; }
+.tm-sketch-axis {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.3;
+  pointer-events: none;
+}
+.tm-sketch-axis-x { stroke: #e98a72; }
+.tm-sketch-axis-y { stroke: #3f9fd1; }
+.tm-sketch-axis-label {
+  font-size: 6px;
+  fill: #4785a5;
+  pointer-events: none;
+}
+.tm-sketch-path {
+  fill: rgb(42 169 213 / 12%);
+  stroke: #087ca8;
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.tm-sketch-path:not(.closed) { fill: none; }
+.tm-sketch-tangent {
+  stroke: #8aa2af;
+  stroke-width: .8;
+  stroke-dasharray: 2 2;
+  vector-effect: non-scaling-stroke;
+}
+.tm-sketch-anchor {
+  fill: #fff;
+  stroke: #314c5a;
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+  cursor: default;
+}
+.tm-sketch-anchor.selected { fill: #0d9ed5; stroke: #fff; }
+.tm-sketch-bezier-handle {
+  fill: #fff;
+  stroke: #0d9ed5;
+  stroke-width: .9;
+  vector-effect: non-scaling-stroke;
+  cursor: default;
+}
+.tm-sketch-help {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgb(255 255 255 / 86%);
+  color: #6d8592;
+  font-size: 10px;
+  pointer-events: none;
+}
+.tm-sketch-status {
+  min-width: 160px;
+  font-size: 11px;
+  color: #718894;
+}
+.tm-sketch-footer label { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
+.tm-sketch-footer .hidden { display: none !important; }
+
+@media (max-width: 900px) {
+  .tm-sketch-shell { width: calc(100vw - 12px); height: calc(100vh - 12px); }
+  .tm-sketch-header { align-items: flex-start; }
+  .tm-sketch-header-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .tm-sketch-footer { gap: 8px; }
+}
