@@ -14,6 +14,7 @@ import {
   materialFor,
 } from "./geometry";
 import {
+  clonePreservingIds,
   cloneWithFreshIds,
   getMeta,
   makeId,
@@ -22,6 +23,7 @@ import {
   type MaterialPreset,
   type RecordedAction,
   type ReferenceKind,
+  type SolidMode,
   type TransformSnapshot,
 } from "./model";
 
@@ -33,6 +35,13 @@ export type EditorEvents = {
 };
 
 type EventKey = keyof EditorEvents;
+type Axis = "x" | "y" | "z";
+type TransformMode = "translate" | "rotate" | "scale";
+
+type HistorySnapshot = {
+  roots: THREE.Object3D[];
+  selectionIds: string[];
+};
 
 export class TinkerEditor {
   readonly scene = new THREE.Scene();
@@ -52,6 +61,13 @@ export class TinkerEditor {
   private replaying = false;
   private macro: RecordedAction[] = [];
   private transformStart?: TransformSnapshot;
+  private transformStarts = new Map<THREE.Object3D, TransformSnapshot>();
+  private history: HistorySnapshot[] = [];
+  private restoringHistory = false;
+  private snapEnabled = true;
+  private gridSize = 1;
+  private modifiers = { shift: false, ctrl: false, alt: false };
+  private axisConstraint: Axis | null = null;
 
   constructor(viewport: HTMLElement) {
     this.viewport = viewport;
@@ -65,7 +81,7 @@ export class TinkerEditor {
     this.renderer.toneMappingExposure = 1.05;
     viewport.prepend(this.renderer.domElement);
 
-    this.scene.background = new THREE.Color(0xf4f7f9);
+    this.scene.background = new THREE.Color(0xf7f9fb);
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
@@ -82,8 +98,7 @@ export class TinkerEditor {
     this.transform = new TransformControls(this.camera, this.renderer.domElement);
     this.transform.setMode("translate");
     this.transform.setSpace("world");
-    this.transform.setTranslationSnap(1);
-    this.transform.setRotationSnap(THREE.MathUtils.degToRad(1));
+    this.updateSnapSettings();
     this.scene.add(this.transform.getHelper());
 
     this.transform.addEventListener("dragging-changed", (event: any) => {
@@ -91,10 +106,18 @@ export class TinkerEditor {
     });
     this.transform.addEventListener("mouseDown", () => {
       const active = this.activeObject();
-      if (active) this.transformStart = snapshotTransform(active);
+      if (!active) return;
+      this.checkpoint();
+      this.transformStart = snapshotTransform(active);
+      this.transformStarts.clear();
+      for (const object of this.selection) this.transformStarts.set(object, snapshotTransform(object));
     });
-    this.transform.addEventListener("mouseUp", () => this.finishTransformAction());
+    this.transform.addEventListener("mouseUp", () => {
+      this.finishTransformAction();
+      this.transformStarts.clear();
+    });
     this.transform.addEventListener("objectChange", () => {
+      this.syncMultiSelectionTransform();
       this.refreshSelectionHelpers();
       this.emit("changed");
     });
@@ -128,18 +151,18 @@ export class TinkerEditor {
     key.shadow.mapSize.set(2048, 2048);
     this.scene.add(key);
 
-    const grid = new THREE.GridHelper(400, 40, 0x8aa0ae, 0xd4dce1);
+    const grid = new THREE.GridHelper(400, 80, 0x78bddc, 0xd8edf5);
     grid.rotation.x = Math.PI / 2;
     (grid.material as THREE.Material).transparent = true;
-    (grid.material as THREE.Material).opacity = 0.72;
+    (grid.material as THREE.Material).opacity = 0.64;
     this.scene.add(grid);
 
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(400, 400),
-      new THREE.ShadowMaterial({ opacity: 0.12 }),
+      new THREE.MeshStandardMaterial({ color: 0xf8fcfe, roughness: 1, metalness: 0, transparent: true, opacity: 0.88 }),
     );
     plane.receiveShadow = true;
-    plane.position.z = -0.02;
+    plane.position.z = -0.04;
     this.scene.add(plane);
 
     const axes = new THREE.AxesHelper(35);
@@ -179,7 +202,7 @@ export class TinkerEditor {
 
     const candidates: THREE.Object3D[] = [];
     this.scene.traverse((object) => {
-      if (object instanceof THREE.Mesh && this.entityRoot(object)) candidates.push(object);
+      if (object instanceof THREE.Mesh && object.visible && this.entityRoot(object)) candidates.push(object);
     });
     const hit = this.raycaster.intersectObjects(candidates, false)[0];
     const root = hit ? this.entityRoot(hit.object) : null;
@@ -197,12 +220,21 @@ export class TinkerEditor {
   }
 
   setSelection(objects: THREE.Object3D[]) {
-    this.selection = [...new Set(objects)].filter((object) => object.parent !== null);
+    this.selection = [...new Set(objects)].filter((object) => object.parent !== null && object.visible);
     const active = this.activeObject();
     if (active) this.transform.attach(active);
     else this.transform.detach();
     this.refreshSelectionHelpers();
     this.emit("selection", [...this.selection]);
+  }
+
+  selectById(id: string, additive = false) {
+    const object = this.findById(id);
+    if (!object) return;
+    if (additive) {
+      if (this.selection.includes(object)) this.setSelection(this.selection.filter((item) => item !== object));
+      else this.setSelection([...this.selection, object]);
+    } else this.setSelection([object]);
   }
 
   getSelection() {
@@ -213,10 +245,26 @@ export class TinkerEditor {
     return this.selection[this.selection.length - 1];
   }
 
+  getSceneRoots() {
+    return this.scene.children.filter((object) => Boolean(getMeta(object)));
+  }
+
+  findById(id: string) {
+    let found: THREE.Object3D | undefined;
+    for (const root of this.getSceneRoots()) {
+      root.traverse((object) => {
+        if (!found && getMeta(object)?.id === id) found = object;
+      });
+      if (found) break;
+    }
+    return found;
+  }
+
   private refreshSelectionHelpers() {
     this.selectionHelpers.clear();
     for (const object of this.selection) {
-      const helper = new THREE.BoxHelper(object, 0x1d7dbe);
+      if (!object.visible) continue;
+      const helper = new THREE.BoxHelper(object, 0x087bb5);
       helper.material.depthTest = false;
       helper.renderOrder = 1000;
       this.selectionHelpers.add(helper);
@@ -233,7 +281,45 @@ export class TinkerEditor {
     return object;
   }
 
-  addObject(object: THREE.Object3D, select = true) {
+  private snapshotHistory(): HistorySnapshot {
+    return {
+      roots: this.getSceneRoots().map((object) => clonePreservingIds(object)),
+      selectionIds: this.selection.map((object) => getMeta(object)?.id).filter((id): id is string => Boolean(id)),
+    };
+  }
+
+  checkpoint() {
+    if (this.restoringHistory) return;
+    this.history.push(this.snapshotHistory());
+    if (this.history.length > 60) this.history.shift();
+  }
+
+  undo() {
+    const snapshot = this.history.pop();
+    if (!snapshot) {
+      this.emit("status", "No hay nada más para deshacer.");
+      return;
+    }
+    this.restoringHistory = true;
+    try {
+      this.setSelection([]);
+      for (const root of this.getSceneRoots()) root.removeFromParent();
+      for (const saved of snapshot.roots) {
+        const restored = clonePreservingIds(saved);
+        this.prepareObject(restored);
+        this.scene.add(restored);
+      }
+      const selection = snapshot.selectionIds.map((id) => this.findById(id)).filter((object): object is THREE.Object3D => Boolean(object));
+      this.setSelection(selection);
+      this.emit("changed");
+      this.emit("status", "Deshacer.");
+    } finally {
+      this.restoringHistory = false;
+    }
+  }
+
+  addObject(object: THREE.Object3D, select = true, history = true) {
+    if (history) this.checkpoint();
     this.prepareObject(object);
     this.scene.add(object);
     if (select) this.setSelection([object]);
@@ -241,10 +327,11 @@ export class TinkerEditor {
     return object;
   }
 
-  addPrimitive(kind: "box" | "cylinder" | "sphere") {
+  addPrimitive(kind: "box" | "cylinder" | "sphere", mode: SolidMode = "solid") {
     const object = kind === "box" ? createBox() : kind === "cylinder" ? createCylinder() : createSphere();
+    if (mode === "hole") this.applySolidMode(object, "hole");
     this.addObject(object);
-    this.emit("status", `${getMeta(object)?.name} creada.`);
+    this.emit("status", `${getMeta(object)?.name} creado.`);
     return object;
   }
 
@@ -275,13 +362,99 @@ export class TinkerEditor {
     return mesh;
   }
 
-  setTransformMode(mode: "translate" | "rotate" | "scale") {
+  setTransformMode(mode: TransformMode) {
     this.transform.setMode(mode);
+    this.clearAxisConstraint();
     this.emit("status", mode === "translate" ? "Mover" : mode === "rotate" ? "Rotar" : "Escalar");
+  }
+
+  getTransformMode() {
+    return this.transform.getMode() as TransformMode;
+  }
+
+  constrainAxis(axis: Axis | null) {
+    this.axisConstraint = axis;
+    this.transform.showX = !axis || axis === "x";
+    this.transform.showY = !axis || axis === "y";
+    this.transform.showZ = !axis || axis === "z";
+    if (axis) this.emit("status", `${this.getTransformMode()} restringido a ${axis.toUpperCase()}. Esc para liberar.`);
+  }
+
+  clearAxisConstraint() {
+    this.axisConstraint = null;
+    this.transform.showX = true;
+    this.transform.showY = true;
+    this.transform.showZ = true;
+  }
+
+  setSnap(enabled: boolean, gridSize = this.gridSize) {
+    this.snapEnabled = enabled;
+    this.gridSize = Math.max(0.01, Number.isFinite(gridSize) ? gridSize : 1);
+    this.updateSnapSettings();
+    this.emit("status", enabled ? `Snap ${this.gridSize:g} mm`.replace(":g", "") : "Snap desactivado.");
+  }
+
+  getSnap() {
+    return { enabled: this.snapEnabled, gridSize: this.gridSize };
+  }
+
+  setModifiers(modifiers: Partial<{ shift: boolean; ctrl: boolean; alt: boolean }>) {
+    Object.assign(this.modifiers, modifiers);
+    this.updateSnapSettings();
+  }
+
+  private updateSnapSettings() {
+    const multiplier = this.modifiers.ctrl ? 10 : this.modifiers.shift ? 0.1 : 1;
+    this.transform.setTranslationSnap(this.snapEnabled ? this.gridSize * multiplier : null);
+    const rotationDegrees = this.modifiers.ctrl ? 15 : this.modifiers.shift ? 1 : 5;
+    this.transform.setRotationSnap(THREE.MathUtils.degToRad(rotationDegrees));
+    this.transform.setScaleSnap(this.modifiers.ctrl ? 0.25 : this.modifiers.shift ? 0.01 : 0.05);
+  }
+
+  private syncMultiSelectionTransform() {
+    const active = this.activeObject();
+    const activeStart = active && this.transformStarts.get(active);
+    if (!active || !activeStart || !this.transformStarts.size) return;
+    const current = snapshotTransform(active);
+    const mode = this.getTransformMode();
+
+    if (mode === "scale" && this.modifiers.alt) {
+      const axis = (this.transform.axis?.toLowerCase().match(/[xyz]/)?.[0] ?? this.axisConstraint ?? "x") as Axis;
+      const index = axis === "x" ? 0 : axis === "y" ? 1 : 2;
+      const base = activeStart.scale[index] || 1;
+      const ratio = current.scale[index] / base;
+      active.scale.set(activeStart.scale[0] * ratio, activeStart.scale[1] * ratio, activeStart.scale[2] * ratio);
+    }
+
+    const activeNow = snapshotTransform(active);
+    for (const object of this.selection) {
+      if (object === active) continue;
+      const before = this.transformStarts.get(object);
+      if (!before) continue;
+      if (mode === "translate") {
+        object.position.set(
+          before.position[0] + activeNow.position[0] - activeStart.position[0],
+          before.position[1] + activeNow.position[1] - activeStart.position[1],
+          before.position[2] + activeNow.position[2] - activeStart.position[2],
+        );
+      } else if (mode === "rotate") {
+        object.rotation.set(
+          before.rotation[0] + activeNow.rotation[0] - activeStart.rotation[0],
+          before.rotation[1] + activeNow.rotation[1] - activeStart.rotation[1],
+          before.rotation[2] + activeNow.rotation[2] - activeStart.rotation[2],
+        );
+      } else {
+        const rx = activeStart.scale[0] ? activeNow.scale[0] / activeStart.scale[0] : 1;
+        const ry = activeStart.scale[1] ? activeNow.scale[1] / activeStart.scale[1] : 1;
+        const rz = activeStart.scale[2] ? activeNow.scale[2] / activeStart.scale[2] : 1;
+        object.scale.set(before.scale[0] * rx, before.scale[1] * ry, before.scale[2] * rz);
+      }
+    }
   }
 
   duplicateSelected(record = true) {
     if (!this.selection.length) return [];
+    this.checkpoint();
     const copies = this.selection.map((object) => {
       const copy = cloneWithFreshIds(object);
       this.prepareObject(copy);
@@ -302,13 +475,16 @@ export class TinkerEditor {
 
   paste() {
     if (!this.clipboard.length) return;
+    this.checkpoint();
     const pasted = this.clipboard.map((object) => cloneWithFreshIds(object));
-    pasted.forEach((object) => this.addObject(object, false));
+    pasted.forEach((object) => this.addObject(object, false, false));
     this.setSelection(pasted);
     this.emit("status", "Pegado exactamente en la posición original.");
   }
 
   deleteSelected() {
+    if (!this.selection.length) return;
+    this.checkpoint();
     const doomed = [...this.selection];
     this.setSelection([]);
     doomed.forEach((object) => object.removeFromParent());
@@ -318,6 +494,7 @@ export class TinkerEditor {
 
   groupSelected() {
     if (this.selection.length < 2) return;
+    this.checkpoint();
     const box = new THREE.Box3();
     this.selection.forEach((object) => box.expandByObject(object));
     const center = box.getCenter(new THREE.Vector3());
@@ -328,7 +505,7 @@ export class TinkerEditor {
       name: "Grupo",
       kind: "group",
       mode: "solid",
-      material: "blue",
+      material: getMeta(this.activeObject())?.material ?? "blue",
       references: [],
     });
     this.scene.add(group);
@@ -341,9 +518,10 @@ export class TinkerEditor {
   ungroupSelected() {
     const groups = this.selection.filter((object) => getMeta(object)?.kind === "group");
     if (!groups.length) return;
+    this.checkpoint();
     const released: THREE.Object3D[] = [];
     for (const group of groups) {
-      const children = [...group.children];
+      const children = [...group.children].filter((child) => Boolean(getMeta(child)));
       children.forEach((child) => {
         this.scene.attach(child);
         released.push(child);
@@ -355,19 +533,29 @@ export class TinkerEditor {
     this.emit("changed");
   }
 
-  toggleHole(record = true) {
-    for (const object of this.selection) {
-      const meta = getMeta(object);
-      if (!meta) continue;
-      meta.mode = meta.mode === "solid" ? "hole" : "solid";
-      setMeta(object, meta);
-      object.traverse((child) => {
-        if (child instanceof THREE.Mesh) child.material = materialFor(meta.material, meta.mode);
-      });
-    }
+  private applySolidMode(object: THREE.Object3D, mode: SolidMode) {
+    const meta = getMeta(object);
+    if (!meta) return;
+    meta.mode = mode;
+    setMeta(object, meta);
+    object.traverse((child) => {
+      if (child instanceof THREE.Mesh) child.material = materialFor(meta.material, meta.mode);
+    });
+  }
+
+  setSolidMode(mode: SolidMode, record = true) {
+    if (!this.selection.length) return;
+    this.checkpoint();
+    for (const object of this.selection) this.applySolidMode(object, mode);
     if (record) this.recordAction({ type: "toggleHole" });
-    this.emit("status", "Modo sólido/hueco actualizado.");
+    this.emit("status", mode === "hole" ? "Convertido en hueco." : "Convertido en sólido.");
     this.emit("changed");
+  }
+
+  toggleHole(record = true) {
+    if (!this.selection.length) return;
+    const targetMode: SolidMode = getMeta(this.activeObject())?.mode === "hole" ? "solid" : "hole";
+    this.setSolidMode(targetMode, record);
   }
 
   applyBoolean(operation: "union" | "subtract" | "intersect") {
@@ -376,19 +564,21 @@ export class TinkerEditor {
       this.emit("status", "Para booleanas seleccioná dos o más sólidos simples (no grupos)." );
       return;
     }
+    this.checkpoint();
     try {
       const result = booleanMeshes(meshes, operation);
       this.setSelection([]);
       meshes.forEach((mesh) => mesh.removeFromParent());
-      this.addObject(result);
+      this.addObject(result, true, false);
       this.emit("status", `Booleana ${operation} aplicada.`);
     } catch (error) {
       this.emit("status", error instanceof Error ? error.message : String(error));
     }
   }
 
-  align(axis: "x" | "y" | "z") {
+  align(axis: Axis) {
     if (this.selection.length < 2) return;
+    this.checkpoint();
     const bounds = this.selection.map((object) => new THREE.Box3().setFromObject(object));
     const target = bounds[0].getCenter(new THREE.Vector3())[axis];
     for (let i = 1; i < this.selection.length; i += 1) {
@@ -407,9 +597,31 @@ export class TinkerEditor {
     meta.name = name.trim() || meta.name;
     setMeta(object, meta);
     this.emit("selection", [...this.selection]);
+    this.emit("changed");
+  }
+
+  renameById(id: string, name: string) {
+    const object = this.findById(id);
+    const meta = object && getMeta(object);
+    if (!object || !meta || !name.trim()) return;
+    this.checkpoint();
+    meta.name = name.trim();
+    setMeta(object, meta);
+    this.emit("changed");
+    this.emit("selection", [...this.selection]);
+  }
+
+  setVisibilityById(id: string, visible: boolean) {
+    const object = this.findById(id);
+    if (!object) return;
+    this.checkpoint();
+    object.visible = visible;
+    if (!visible && this.selection.includes(object)) this.setSelection(this.selection.filter((item) => item !== object));
+    this.emit("changed");
   }
 
   setMaterial(preset: MaterialPreset) {
+    if (!this.selection.length) return;
     for (const object of this.selection) {
       const meta = getMeta(object);
       if (!meta) continue;
@@ -422,7 +634,7 @@ export class TinkerEditor {
     this.emit("changed");
   }
 
-  setActivePosition(axis: "x" | "y" | "z", value: number) {
+  setActivePosition(axis: Axis, value: number) {
     const object = this.activeObject();
     if (!object || !Number.isFinite(value)) return;
     object.position[axis] = value;
@@ -430,10 +642,20 @@ export class TinkerEditor {
     this.emit("changed");
   }
 
-  setActiveRotation(axis: "x" | "y" | "z", degrees: number) {
+  setActiveRotation(axis: Axis, degrees: number) {
     const object = this.activeObject();
     if (!object || !Number.isFinite(degrees)) return;
     object.rotation[axis] = THREE.MathUtils.degToRad(degrees);
+    this.refreshSelectionHelpers();
+    this.emit("changed");
+  }
+
+  setActiveDimension(axis: Axis, value: number) {
+    const object = this.activeObject();
+    if (!object || !Number.isFinite(value) || value <= 0) return;
+    const current = this.boundsOf(object)[axis];
+    if (current <= 0) return;
+    object.scale[axis] *= value / current;
     this.refreshSelectionHelpers();
     this.emit("changed");
   }
@@ -442,6 +664,7 @@ export class TinkerEditor {
     const object = this.activeObject();
     const meta = object && getMeta(object);
     if (!object || !meta || !name.trim()) return;
+    this.checkpoint();
     meta.references.push({ id: makeId("ref"), kind, name: name.trim() });
     setMeta(object, meta);
     this.emit("selection", [...this.selection]);
@@ -451,6 +674,7 @@ export class TinkerEditor {
     const object = this.activeObject();
     const meta = object && getMeta(object);
     if (!object || !meta) return;
+    this.checkpoint();
     meta.references = meta.references.filter((reference) => reference.id !== id);
     setMeta(object, meta);
     this.emit("selection", [...this.selection]);
@@ -488,6 +712,7 @@ export class TinkerEditor {
       this.emit("status", "No hay macro grabada o no hay selección.");
       return;
     }
+    this.checkpoint();
     this.replaying = true;
     try {
       for (let i = 0; i < Math.max(1, Math.min(100, times)); i += 1) {
@@ -502,11 +727,18 @@ export class TinkerEditor {
 
   private executeRecordedAction(action: RecordedAction) {
     if (action.type === "duplicate") {
-      this.duplicateSelected(false);
+      const copies = this.selection.map((object) => {
+        const copy = cloneWithFreshIds(object);
+        this.prepareObject(copy);
+        this.scene.add(copy);
+        return copy;
+      });
+      this.setSelection(copies);
       return;
     }
     if (action.type === "toggleHole") {
-      this.toggleHole(false);
+      const targetMode: SolidMode = getMeta(this.activeObject())?.mode === "hole" ? "solid" : "hole";
+      for (const object of this.selection) this.applySolidMode(object, targetMode);
       return;
     }
     for (const object of this.selection) {
@@ -540,26 +772,18 @@ export class TinkerEditor {
     const after = snapshotTransform(active);
     this.transformStart = undefined;
 
-    const mode = this.transform.getMode();
+    const mode = this.getTransformMode();
     if (mode === "translate") {
       this.recordAction({
         type: "translate",
-        delta: [
-          after.position[0] - before.position[0],
-          after.position[1] - before.position[1],
-          after.position[2] - before.position[2],
-        ],
+        delta: [after.position[0] - before.position[0], after.position[1] - before.position[1], after.position[2] - before.position[2]],
       });
     } else if (mode === "rotate") {
       this.recordAction({
         type: "rotate",
-        delta: [
-          after.rotation[0] - before.rotation[0],
-          after.rotation[1] - before.rotation[1],
-          after.rotation[2] - before.rotation[2],
-        ],
+        delta: [after.rotation[0] - before.rotation[0], after.rotation[1] - before.rotation[1], after.rotation[2] - before.rotation[2]],
       });
-    } else if (mode === "scale") {
+    } else {
       this.recordAction({
         type: "scale",
         ratio: [
@@ -573,15 +797,16 @@ export class TinkerEditor {
   }
 
   exportStl() {
-    const selected = this.selection.length ? this.selection : this.scene.children.filter((object) => getMeta(object));
+    const selected = this.selection.length ? this.selection : this.getSceneRoots();
     if (!selected.length) {
       this.emit("status", "No hay geometría para exportar.");
       return;
     }
     const exportRoot = new THREE.Group();
     selected.forEach((object) => exportRoot.add(object.clone(true)));
-    const data = new STLExporter().parse(exportRoot, { binary: true }) as ArrayBuffer;
-    const blob = new Blob([data], { type: "model/stl" });
+    const data = new STLExporter().parse(exportRoot, { binary: true });
+    const bytes = data instanceof DataView ? data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) : data;
+    const blob = new Blob([bytes], { type: "model/stl" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -601,12 +826,13 @@ export class TinkerEditor {
         kind: meta.kind,
         mode: meta.mode,
         material: meta.material,
+        visible: object.visible,
         params: meta.params ?? {},
         references: meta.references,
         transform: snapshotTransform(object),
         children: object.children.map(walk).filter(Boolean),
       };
     };
-    return this.scene.children.map(walk).filter(Boolean);
+    return this.getSceneRoots().map(walk).filter(Boolean);
   }
 }
