@@ -9,32 +9,48 @@ export interface SemanticReference {
   kind: ReferenceKind;
   name: string;
   note?: string;
+  zone?: {
+    points: [number, number, number][];
+  };
 }
 
 export type MaterialPreset =
+  | "lightRed"
+  | "peach"
+  | "cream"
+  | "mint"
+  | "paleCyan"
+  | "sky"
+  | "periwinkle"
+  | "lavender"
+  | "palePink"
+  | "sand"
+  | "white"
+  | "gray"
   | "red"
   | "orange"
-  | "amber"
   | "yellow"
-  | "lime"
   | "green"
-  | "emerald"
-  | "teal"
+  | "aqua"
   | "cyan"
-  | "sky"
-  | "blue"
-  | "indigo"
-  | "violet"
+  | "royal"
   | "purple"
   | "fuchsia"
-  | "pink"
-  | "rose"
   | "brown"
-  | "tan"
-  | "gray"
-  | "slate"
+  | "lightGray"
+  | "darkGray"
+  | "darkRed"
+  | "vermilion"
+  | "ochre"
+  | "forest"
+  | "darkTeal"
+  | "deepCyan"
+  | "navy"
+  | "deepPurple"
+  | "wine"
+  | "darkBrown"
+  | "silverGray"
   | "black"
-  | "white"
   | "gold"
   | "silver";
 
