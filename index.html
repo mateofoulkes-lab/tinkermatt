@@ -3,61 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#f7f9fb" />
     <title>TinkerMatt</title>
   </head>
   <body>
     <div id="app">
-      <header class="topbar">
-        <div class="brand">TinkerMatt <span>alpha</span></div>
-        <div class="toolbar" aria-label="Herramientas">
-          <button id="tool-select" class="tool active" title="Seleccionar (1)">↖</button>
-          <button id="tool-move" class="tool" title="Mover (2)">↔</button>
-          <button id="tool-rotate" class="tool" title="Rotar (3)">⟳</button>
-          <button id="tool-scale" class="tool" title="Escalar (4)">⤢</button>
-          <span class="separator"></span>
-          <button id="duplicate" title="Duplicar (Ctrl+D)">Duplicar</button>
-          <button id="group" title="Agrupar">Agrupar</button>
-          <button id="ungroup" title="Desagrupar">Desagrupar</button>
-          <button id="hole" title="Alternar sólido/hueco">Sólido / Hueco</button>
-          <span class="separator"></span>
-          <button id="bool-union" title="Unión booleana">Unión</button>
-          <button id="bool-subtract" title="Restar el segundo al primero">Restar</button>
-          <button id="bool-intersect" title="Intersección">Intersección</button>
-          <span class="separator"></span>
-          <button id="align-x">Alinear X</button>
-          <button id="align-y">Alinear Y</button>
-          <button id="align-z">Alinear Z</button>
+      <header class="app-header">
+        <div class="titlebar">
+          <div class="brand-mark" aria-hidden="true">TM</div>
+          <div class="brand">TinkerMatt</div>
+          <div class="design-name">Diseño sin nombre</div>
+          <div class="title-actions">
+            <button id="import-stl-top" class="text-action" type="button" title="Importar STL">
+              <span class="fa-icon" data-fa="import"></span><span>Importar</span>
+            </button>
+            <button id="export-stl" class="text-action primary" type="button" title="Exportar STL">
+              <span class="fa-icon" data-fa="export"></span><span>Exportar</span>
+            </button>
+          </div>
         </div>
-        <div class="toolbar toolbar-right">
-          <button id="record" class="record">● Grabar</button>
-          <button id="repeat">Repetir</button>
-          <input id="repeat-count" type="number" min="1" max="100" value="1" title="Cantidad de repeticiones" />
-          <button id="export-stl">Exportar STL</button>
+
+        <div class="commandbar" aria-label="Herramientas">
+          <div class="command-group">
+            <button id="tool-select" class="icon-button active" title="Seleccionar (1)" aria-label="Seleccionar"><span class="fa-icon" data-fa="select"></span></button>
+            <button id="tool-move" class="icon-button" title="Mover (2)" aria-label="Mover"><span class="fa-icon" data-fa="move"></span></button>
+            <button id="tool-rotate" class="icon-button" title="Rotar (3)" aria-label="Rotar"><span class="fa-icon" data-fa="rotate"></span></button>
+            <button id="tool-scale" class="icon-button" title="Escalar (4)" aria-label="Escalar"><span class="fa-icon" data-fa="scale"></span></button>
+          </div>
+
+          <div class="command-divider"></div>
+
+          <div class="command-group">
+            <button id="duplicate" class="icon-button" title="Duplicar (Ctrl+D)" aria-label="Duplicar"><span class="fa-icon" data-fa="duplicate"></span></button>
+            <button id="group" class="icon-button" title="Agrupar" aria-label="Agrupar"><span class="fa-icon" data-fa="group"></span></button>
+            <button id="ungroup" class="icon-button" title="Desagrupar" aria-label="Desagrupar"><span class="fa-icon" data-fa="ungroup"></span></button>
+            <button id="hole" class="icon-button" title="Alternar sólido / hueco" aria-label="Sólido o hueco"><span class="fa-icon" data-fa="hole"></span></button>
+          </div>
+
+          <div class="command-divider"></div>
+
+          <div class="command-group boolean-group">
+            <button id="bool-union" class="icon-button" title="Unión booleana" aria-label="Unión"><span class="fa-icon" data-fa="union"></span></button>
+            <button id="bool-subtract" class="icon-button" title="Resta booleana" aria-label="Restar"><span class="fa-icon" data-fa="subtract"></span></button>
+            <button id="bool-intersect" class="icon-button" title="Intersección booleana" aria-label="Intersección"><span class="fa-icon" data-fa="intersect"></span></button>
+          </div>
+
+          <div class="command-divider"></div>
+
+          <div class="command-group align-group">
+            <button id="align-x" class="axis-button" title="Alinear centros en X">X</button>
+            <button id="align-y" class="axis-button" title="Alinear centros en Y">Y</button>
+            <button id="align-z" class="axis-button" title="Alinear centros en Z">Z</button>
+          </div>
+
+          <div class="command-spacer"></div>
+
+          <div class="command-group macro-controls">
+            <button id="record" class="text-action record" type="button"><span class="fa-icon" data-fa="record"></span><span class="record-label">Grabar</span></button>
+            <button id="repeat" class="text-action" type="button" title="Repetir última grabación"><span class="fa-icon" data-fa="repeat"></span><span>Repetir</span></button>
+            <input id="repeat-count" type="number" min="1" max="100" value="1" title="Cantidad de repeticiones" />
+          </div>
         </div>
       </header>
 
       <main class="workspace">
         <section id="viewport" class="viewport">
-          <div class="hint">Shift + click: selección múltiple · Supr: borrar · Ctrl+C / Ctrl+V conserva posición</div>
+          <div class="viewport-chip">Shift + click: selección múltiple</div>
           <div id="macro-pill" class="macro-pill hidden"></div>
+          <div class="workplane-label">Plano de trabajo · mm</div>
         </section>
 
         <aside class="shapes-panel">
-          <div class="panel-title">Formas</div>
-          <div class="shape-grid">
-            <button class="shape-card" data-shape="box"><span class="shape-icon cube"></span><b>Caja</b></button>
-            <button class="shape-card" data-shape="cylinder"><span class="shape-icon cylinder"></span><b>Cilindro</b></button>
-            <button class="shape-card" data-shape="sphere"><span class="shape-icon sphere"></span><b>Esfera</b></button>
-            <button class="shape-card" id="add-text"><span class="shape-icon text-icon">T</span><b>Texto</b></button>
-            <button class="shape-card" id="import-svg"><span class="shape-icon svg-icon">SVG</span><b>SVG</b></button>
-            <button class="shape-card" id="import-stl"><span class="shape-icon stl-icon">STL</span><b>STL</b></button>
+          <div class="panel-tabs">
+            <button class="panel-tab active" type="button">Formas</button>
+            <button class="panel-tab" type="button" title="Próximamente">Favoritos</button>
           </div>
-          <div class="panel-title secondary">Generadores</div>
-          <div class="shape-grid">
-            <button class="shape-card disabled-card" id="thread-placeholder" title="Próximo paso: generador de rosca paramétrico"><span class="shape-icon thread-icon">⌁</span><b>Rosca</b><small>próximamente</small></button>
-            <button class="shape-card disabled-card" id="bevel-placeholder" title="El motor de bevel/fillet por arista entra en la siguiente etapa"><span class="shape-icon bevel-icon">◩</span><b>Bevel</b><small>próximamente</small></button>
+          <div class="panel-section-head">
+            <span>Formas básicas</span>
           </div>
+          <div class="shape-grid">
+            <button class="shape-card" data-shape="box"><span class="shape-glyph"><span class="fa-icon" data-fa="box"></span></span><b>Caja</b></button>
+            <button class="shape-card" data-shape="cylinder"><span class="shape-glyph orange"><span class="fa-icon" data-fa="cylinder"></span></span><b>Cilindro</b></button>
+            <button class="shape-card" data-shape="sphere"><span class="shape-glyph cyan"><span class="fa-icon" data-fa="sphere"></span></span><b>Esfera</b></button>
+            <button class="shape-card" id="add-text"><span class="shape-glyph magenta"><span class="fa-icon" data-fa="text"></span></span><b>Texto</b></button>
+            <button class="shape-card" id="import-svg"><span class="shape-glyph violet"><span class="fa-icon" data-fa="svg"></span></span><b>SVG</b></button>
+            <button class="shape-card" id="import-stl"><span class="shape-glyph slate"><span class="fa-icon" data-fa="import"></span></span><b>STL</b></button>
+          </div>
+
+          <div class="panel-section-head generator-head">
+            <span>Generadores</span>
+          </div>
+          <div class="shape-grid">
+            <button class="shape-card disabled-card" id="thread-placeholder" title="Generador de rosca paramétrico: próxima etapa"><span class="shape-glyph"><span class="fa-icon" data-fa="thread"></span></span><b>Rosca</b><small>próx.</small></button>
+            <button class="shape-card disabled-card" id="bevel-placeholder" title="Bevel / fillet por arista: próxima etapa"><span class="shape-glyph"><span class="fa-icon" data-fa="bevel"></span></span><b>Bevel</b><small>próx.</small></button>
+          </div>
+
           <input id="svg-file" type="file" accept="image/svg+xml,.svg" hidden />
           <input id="stl-file" type="file" accept=".stl,model/stl" hidden />
         </aside>
@@ -66,8 +106,13 @@
       <section id="inspector" class="inspector hidden">
         <div class="inspector-head">
           <input id="object-name" value="Objeto" aria-label="Nombre del objeto" />
-          <button id="close-inspector" title="Cerrar">×</button>
+          <button id="close-inspector" class="inspector-close" title="Cerrar" aria-label="Cerrar">×</button>
         </div>
+        <div class="solid-hole-strip">
+          <button type="button" class="mode-preview solid-preview active-preview" tabindex="-1"><span class="mode-dot solid-dot"></span><span>Sólido</span></button>
+          <button type="button" class="mode-preview" tabindex="-1"><span class="mode-dot hole-dot"></span><span>Hueco</span></button>
+        </div>
+        <div class="inspector-section-title">Transformación</div>
         <div class="inspector-grid">
           <label>X <input id="pos-x" type="number" step="0.1" /></label>
           <label>Y <input id="pos-y" type="number" step="0.1" /></label>
@@ -87,7 +132,7 @@
         </label>
         <details id="refs-details">
           <summary>Referencias semánticas</summary>
-          <p class="muted">Opcionales y ocultas. Sirven para poder hablar de caras, aristas o zonas por nombre.</p>
+          <p class="muted">Opcionales. Sólo aparecen cuando las necesitás para nombrar caras, aristas, vértices o zonas.</p>
           <div id="refs-list" class="refs-list"></div>
           <div class="ref-add">
             <select id="ref-kind">
@@ -106,7 +151,7 @@
 
       <footer class="statusbar">
         <span id="status">Listo.</span>
-        <span>Unidades: mm</span>
+        <span class="status-right"><span>mm</span><span class="version">v0.2.0</span></span>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
