@@ -1,0 +1,23 @@
+name: mcp-server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mcp-server/**"
+      - ".github/workflows/mcp.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
