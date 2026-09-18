@@ -1,0 +1,119 @@
+/* v0.4.1 refinements */
+
+/* Photoshop-like compact toolbox. */
+.workspace { grid-template-columns: 70px minmax(0, 1fr) 238px !important; }
+.library-panel { overflow: visible !important; }
+.library-panel .panel-heading { min-height: 34px !important; font-size: 9px !important; }
+.tm-photoshop-family {
+  position: relative;
+  border-bottom: 0 !important;
+  padding: 2px 0;
+}
+.tm-photoshop-family > summary {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  min-height: 58px !important;
+  margin: 0 auto;
+  padding: 5px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  cursor: default !important;
+  list-style: none;
+}
+.tm-photoshop-family > summary:hover {
+  background: #eaf4fa;
+  border-color: #c5deea;
+}
+.tm-photoshop-family > summary::after { display: none !important; }
+.tm-photoshop-family > .library-item { display: none !important; }
+.tm-tool-current {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  color: #425f72;
+}
+.tm-tool-current .fa-icon,
+.tm-tool-current svg { width: 38px !important; height: 38px !important; }
+.tm-tool-corner {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  color: #8497a3;
+  font-size: 8px;
+  line-height: 1;
+}
+.tm-tool-flyout {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid #ccd8df;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 7px 24px rgb(24 48 65 / 20%);
+}
+.tm-tool-flyout.hidden { display: none; }
+.tm-tool-flyout-item {
+  width: 62px;
+  min-height: 62px;
+  display: grid;
+  grid-template-rows: 42px auto;
+  place-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #486171;
+  font-size: 8px;
+  cursor: default;
+}
+.tm-tool-flyout-item:hover:not(:disabled) {
+  background: #eaf4fa;
+  border-color: #abd2e5;
+}
+.tm-tool-flyout-item:disabled { opacity: .38; }
+.tm-tool-flyout-item .mini-shape { width: 40px !important; height: 40px !important; }
+.tm-tool-flyout-item .mini-shape .fa-icon,
+.tm-tool-flyout-item .mini-shape svg { width: 34px !important; height: 34px !important; }
+
+/* Tinker-style scaling handles. */
+.tm-edge-handle {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 1px !important;
+  background: #33444f !important;
+  border-color: #33444f !important;
+  z-index: 3;
+}
+.tm-edge-handle:hover {
+  background: #0f99d3 !important;
+  border-color: #0f99d3 !important;
+}
+.tm-edge-handle.hidden { display: none !important; }
+
+/* The user's mouse arrow remains an arrow on every manipulator control. */
+.tm-arrow-controls .tm-scale-handle,
+.tm-arrow-controls .tm-move-handle,
+.tm-arrow-controls .tm-rotate-handle,
+.tm-arrow-controls .tm-measure,
+.tm-arrow-controls .tm-angle-input,
+.tm-arrow-controls .tm-tool-flyout-item,
+.tm-arrow-controls .tm-photoshop-family > summary {
+  cursor: default !important;
+}
+.tm-arrow-controls .tm-scale-handle:active,
+.tm-arrow-controls .tm-move-handle:active,
+.tm-arrow-controls .tm-rotate-handle:active { cursor: default !important; }
+
+@media (max-width: 1050px) {
+  .workspace { grid-template-columns: 64px minmax(0, 1fr) 205px !important; }
+  .tm-photoshop-family > summary { width: 54px; height: 54px; min-height: 54px !important; }
+}
