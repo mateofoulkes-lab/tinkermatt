@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>TinkerMatt</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">TinkerMatt <span>alpha</span></div>
+        <div class="toolbar" aria-label="Herramientas">
+          <button id="tool-select" class="tool active" title="Seleccionar (1)">↖</button>
+          <button id="tool-move" class="tool" title="Mover (2)">↔</button>
+          <button id="tool-rotate" class="tool" title="Rotar (3)">⟳</button>
+          <button id="tool-scale" class="tool" title="Escalar (4)">⤢</button>
+          <span class="separator"></span>
+          <button id="duplicate" title="Duplicar (Ctrl+D)">Duplicar</button>
+          <button id="group" title="Agrupar">Agrupar</button>
+          <button id="ungroup" title="Desagrupar">Desagrupar</button>
+          <button id="hole" title="Alternar sólido/hueco">Sólido / Hueco</button>
+          <span class="separator"></span>
+          <button id="bool-union" title="Unión booleana">Unión</button>
+          <button id="bool-subtract" title="Restar el segundo al primero">Restar</button>
+          <button id="bool-intersect" title="Intersección">Intersección</button>
+          <span class="separator"></span>
+          <button id="align-x">Alinear X</button>
+          <button id="align-y">Alinear Y</button>
+          <button id="align-z">Alinear Z</button>
+        </div>
+        <div class="toolbar toolbar-right">
+          <button id="record" class="record">● Grabar</button>
+          <button id="repeat">Repetir</button>
+          <input id="repeat-count" type="number" min="1" max="100" value="1" title="Cantidad de repeticiones" />
+          <button id="export-stl">Exportar STL</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section id="viewport" class="viewport">
+          <div class="hint">Shift + click: selección múltiple · Supr: borrar · Ctrl+C / Ctrl+V conserva posición</div>
+          <div id="macro-pill" class="macro-pill hidden"></div>
+        </section>
+
+        <aside class="shapes-panel">
+          <div class="panel-title">Formas</div>
+          <div class="shape-grid">
+            <button class="shape-card" data-shape="box"><span class="shape-icon cube"></span><b>Caja</b></button>
+            <button class="shape-card" data-shape="cylinder"><span class="shape-icon cylinder"></span><b>Cilindro</b></button>
+            <button class="shape-card" data-shape="sphere"><span class="shape-icon sphere"></span><b>Esfera</b></button>
+            <button class="shape-card" id="add-text"><span class="shape-icon text-icon">T</span><b>Texto</b></button>
+            <button class="shape-card" id="import-svg"><span class="shape-icon svg-icon">SVG</span><b>SVG</b></button>
+            <button class="shape-card" id="import-stl"><span class="shape-icon stl-icon">STL</span><b>STL</b></button>
+          </div>
+          <div class="panel-title secondary">Generadores</div>
+          <div class="shape-grid">
+            <button class="shape-card disabled-card" id="thread-placeholder" title="Próximo paso: generador de rosca paramétrico"><span class="shape-icon thread-icon">⌁</span><b>Rosca</b><small>próximamente</small></button>
+            <button class="shape-card disabled-card" id="bevel-placeholder" title="El motor de bevel/fillet por arista entra en la siguiente etapa"><span class="shape-icon bevel-icon">◩</span><b>Bevel</b><small>próximamente</small></button>
+          </div>
+          <input id="svg-file" type="file" accept="image/svg+xml,.svg" hidden />
+          <input id="stl-file" type="file" accept=".stl,model/stl" hidden />
+        </aside>
+      </main>
+
+      <section id="inspector" class="inspector hidden">
+        <div class="inspector-head">
+          <input id="object-name" value="Objeto" aria-label="Nombre del objeto" />
+          <button id="close-inspector" title="Cerrar">×</button>
+        </div>
+        <div class="inspector-grid">
+          <label>X <input id="pos-x" type="number" step="0.1" /></label>
+          <label>Y <input id="pos-y" type="number" step="0.1" /></label>
+          <label>Z <input id="pos-z" type="number" step="0.1" /></label>
+          <label>Rot X <input id="rot-x" type="number" step="1" /></label>
+          <label>Rot Y <input id="rot-y" type="number" step="1" /></label>
+          <label>Rot Z <input id="rot-z" type="number" step="1" /></label>
+        </div>
+        <div class="dimensions" id="dimensions">—</div>
+        <label class="material-row">Material
+          <select id="material-select">
+            <option value="blue">Azul mate</option>
+            <option value="gray">Gris</option>
+            <option value="gold">Dorado metalizado</option>
+            <option value="red">Rojo</option>
+          </select>
+        </label>
+        <details id="refs-details">
+          <summary>Referencias semánticas</summary>
+          <p class="muted">Opcionales y ocultas. Sirven para poder hablar de caras, aristas o zonas por nombre.</p>
+          <div id="refs-list" class="refs-list"></div>
+          <div class="ref-add">
+            <select id="ref-kind">
+              <option value="zone">Zona</option>
+              <option value="face">Cara</option>
+              <option value="edge">Arista</option>
+              <option value="vertex">Vértice</option>
+              <option value="axis">Eje</option>
+              <option value="plane">Plano</option>
+            </select>
+            <input id="ref-name" placeholder="Ej. TORTUGA" />
+            <button id="add-ref">Agregar</button>
+          </div>
+        </details>
+      </section>
+
+      <footer class="statusbar">
+        <span id="status">Listo.</span>
+        <span>Unidades: mm</span>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
