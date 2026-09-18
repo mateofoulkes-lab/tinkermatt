@@ -1,0 +1,80 @@
+.tm-semantic-pick-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  pointer-events: none;
+  cursor: default;
+}
+
+.tm-semantic-pick-layer.active {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+
+.tm-semantic-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.tm-semantic-mark {
+  border: 1px solid #9fb8c8;
+  background: #fff;
+  color: #28475a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tm-semantic-mark:hover {
+  border-color: #159bd3;
+  background: #f3fbff;
+}
+
+.tm-semantic-mark.active {
+  color: #fff;
+  background: #159bd3;
+  border-color: #0e86ba;
+}
+
+.tm-semantic-mark:disabled {
+  opacity: .55;
+}
+
+.tm-semantic-count {
+  min-width: 28px;
+  color: #607889;
+  font-size: 11px;
+}
+
+.tm-autosave-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  color: #6d8290;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: .85;
+}
+
+.tm-autosave-badge.saving::before,
+.tm-autosave-badge.saved::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f0a526;
+}
+
+.tm-autosave-badge.saved::before {
+  background: #39a85b;
+}
+
+.tm-reference-hover-note {
+  color: #159bd3;
+  font-weight: 600;
+}
