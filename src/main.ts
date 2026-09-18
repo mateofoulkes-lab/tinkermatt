@@ -17,10 +17,10 @@ import {
   faRepeat,
   faFileImport,
   faFileExport,
+  faFileImage,
   faCube,
   faDatabase,
   faFont,
-  faVectorSquare,
   faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import "./style.css";
@@ -49,7 +49,7 @@ const faIcons: Record<string, IconDefinition> = {
   cylinder: faDatabase,
   sphere: faCircle,
   text: faFont,
-  svg: faVectorSquare,
+  svg: faFileImage,
   thread: faGear,
   bevel: faCube,
 };
