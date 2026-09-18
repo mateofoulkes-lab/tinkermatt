@@ -56,6 +56,20 @@ function meshFromGeometry(geometry: THREE.BufferGeometry, kind: ShapeKind, name:
   return mesh;
 }
 
+function centerSketchGeometry(geometry: THREE.BufferGeometry) {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  if (!box) return geometry;
+  geometry.translate(
+    -(box.min.x + box.max.x) / 2,
+    -(box.min.y + box.max.y) / 2,
+    -box.min.z,
+  );
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 function extrudedProfile(points: Array<[number, number]>, depth: number) {
   const shape = new THREE.Shape();
   shape.moveTo(points[0][0], points[0][1]);
@@ -66,7 +80,6 @@ function extrudedProfile(points: Array<[number, number]>, depth: number) {
     bevelEnabled: false,
     curveSegments: 12,
   });
-  // Profile Y becomes world Z; extrusion becomes world -Y.
   geometry.rotateX(Math.PI / 2);
   return geometry;
 }
@@ -86,20 +99,12 @@ export function createAdvancedPrimitive(kind: AdvancedPrimitiveKind) {
   }
 
   if (kind === "roof") {
-    const geometry = extrudedProfile([
-      [-12, 0],
-      [12, 0],
-      [0, 14],
-    ], 24);
+    const geometry = extrudedProfile([[-12, 0], [12, 0], [0, 14]], 24);
     return meshFromGeometry(geometry, kind, "Techo");
   }
 
   if (kind === "wedge") {
-    const geometry = extrudedProfile([
-      [-12, 0],
-      [12, 0],
-      [12, 18],
-    ], 24);
+    const geometry = extrudedProfile([[-12, 0], [12, 0], [12, 18]], 24);
     return meshFromGeometry(geometry, kind, "Cuña");
   }
 
@@ -152,14 +157,7 @@ function buildShape(data: SketchData) {
   for (let i = 0; i < data.points.length; i += 1) {
     const current = data.points[i];
     const next = data.points[(i + 1) % data.points.length];
-    shape.bezierCurveTo(
-      current.outX,
-      -current.outY,
-      next.inX,
-      -next.inY,
-      next.x,
-      -next.y,
-    );
+    shape.bezierCurveTo(current.outX, -current.outY, next.inX, -next.inY, next.x, -next.y);
   }
   return shape;
 }
@@ -187,18 +185,12 @@ function sketchParams(data: SketchData, operation: SketchOperation) {
   return {
     featureType: operation.mode,
     sketchJson: JSON.stringify(data),
-    ...(operation.mode === "extrude"
-      ? { depth: operation.depth }
-      : { angle: operation.angle, segments: operation.segments }),
+    ...(operation.mode === "extrude" ? { depth: operation.depth } : { angle: operation.angle, segments: operation.segments }),
   };
 }
 
-export function createSketchObject(data: SketchData, operation: SketchOperation, material?: MaterialPreset) {
-  const chosenMaterial = material ?? randomMaterialPreset();
+function sketchGeometry(data: SketchData, operation: SketchOperation) {
   let geometry: THREE.BufferGeometry;
-  let kind: ShapeKind;
-  let name: string;
-
   if (operation.mode === "extrude") {
     const shape = buildShape(data);
     geometry = new THREE.ExtrudeGeometry(shape, {
@@ -206,11 +198,8 @@ export function createSketchObject(data: SketchData, operation: SketchOperation,
       bevelEnabled: false,
       curveSegments: 16,
     });
-    kind = "sketchExtrude";
-    name = "Extrusión de sketch";
   } else {
-    const sampled = sampleSketch(data, 14)
-      .map((point) => new THREE.Vector2(Math.max(0.001, Math.abs(point.x)), point.y));
+    const sampled = sampleSketch(data, 14).map((point) => new THREE.Vector2(Math.max(0.001, Math.abs(point.x)), point.y));
     if (sampled.length < 3) throw new Error("El perfil no tiene suficientes puntos para Revolve.");
     geometry = new THREE.LatheGeometry(
       sampled,
@@ -219,28 +208,31 @@ export function createSketchObject(data: SketchData, operation: SketchOperation,
       THREE.MathUtils.degToRad(Math.max(1, Math.min(360, operation.angle))),
     );
     geometry.rotateX(Math.PI / 2);
-    kind = "revolve";
-    name = "Revolve";
   }
-
   geometry.computeVertexNormals();
+  return centerSketchGeometry(geometry);
+}
+
+export function createSketchObject(data: SketchData, operation: SketchOperation, material?: MaterialPreset) {
+  const chosenMaterial = material ?? randomMaterialPreset();
+  const kind: ShapeKind = operation.mode === "extrude" ? "sketchExtrude" : "revolve";
+  const name = operation.mode === "extrude" ? "Extrusión de sketch" : "Revolve";
+  const geometry = sketchGeometry(data, operation);
   const m = meta(kind, name, chosenMaterial, sketchParams(data, operation));
   const mesh = new THREE.Mesh(geometry, materialFor(m.material));
   setMeta(mesh, m);
-  normalizeToWorkplane(mesh);
   return mesh;
 }
 
 export function replaceSketchGeometry(object: THREE.Mesh, data: SketchData, operation: SketchOperation) {
   const currentMeta = object.userData.tinker as TinkerMeta | undefined;
-  const replacement = createSketchObject(data, operation, currentMeta?.material);
+  const geometry = sketchGeometry(data, operation);
   object.geometry.dispose();
-  object.geometry = replacement.geometry;
+  object.geometry = geometry;
   if (currentMeta) {
     currentMeta.kind = operation.mode === "extrude" ? "sketchExtrude" : "revolve";
     currentMeta.name = operation.mode === "extrude" ? "Extrusión de sketch" : "Revolve";
     currentMeta.params = sketchParams(data, operation);
     setMeta(object, currentMeta);
   }
-  normalizeToWorkplane(object);
 }
