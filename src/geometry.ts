@@ -4,7 +4,7 @@ import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION } from "three-bvh-csg";
-import { makeId, setMeta, type MaterialPreset, type ShapeKind, type SolidMode, type TinkerMeta } from "./model";
+import { getMeta, makeId, setMeta, type MaterialPreset, type ShapeKind, type SolidMode, type TinkerMeta } from "./model";
 
 export const MATERIAL_PALETTE: Array<{ id: MaterialPreset; color: number; label: string; metalness?: number; roughness?: number }> = [
   { id: "red", color: 0xe74c3c, label: "Rojo" },
@@ -43,13 +43,14 @@ export function randomMaterialPreset(): MaterialPreset {
 export function materialFor(preset: MaterialPreset, mode: SolidMode = "solid") {
   if (mode === "hole") {
     return new THREE.MeshStandardMaterial({
-      color: 0x7d8790,
-      roughness: 0.85,
-      metalness: 0,
+      color: 0x26343e,
+      roughness: 0.7,
+      metalness: 0.04,
       transparent: true,
-      opacity: 0.28,
-      wireframe: true,
+      opacity: 0.36,
+      wireframe: false,
       depthWrite: false,
+      side: THREE.DoubleSide,
     });
   }
   const swatch = MATERIAL_PALETTE.find((item) => item.id === preset) ?? MATERIAL_PALETTE[10];
@@ -165,14 +166,37 @@ function meshToBrush(mesh: THREE.Mesh) {
 export function booleanMeshes(meshes: THREE.Mesh[], operation: "union" | "subtract" | "intersect") {
   if (meshes.length < 2) throw new Error("Seleccioná al menos dos sólidos.");
   const evaluator = new Evaluator();
-  const op = operation === "union" ? ADDITION : operation === "subtract" ? SUBTRACTION : INTERSECTION;
-  let result = meshToBrush(meshes[0]);
-  for (let i = 1; i < meshes.length; i += 1) {
-    const next = meshToBrush(meshes[i]);
-    result = evaluator.evaluate(result, next, op);
+
+  let result: Brush;
+  let resultName: string;
+  let resultMaterial: MaterialPreset | undefined;
+
+  if (operation === "union") {
+    const solids = meshes.filter((mesh) => getMeta(mesh)?.mode !== "hole");
+    const holes = meshes.filter((mesh) => getMeta(mesh)?.mode === "hole");
+    if (!solids.length) throw new Error("Para unir con huecos necesitás al menos un sólido.");
+
+    result = meshToBrush(solids[0]);
+    resultMaterial = getMeta(solids[0])?.material;
+    for (let i = 1; i < solids.length; i += 1) {
+      result = evaluator.evaluate(result, meshToBrush(solids[i]), ADDITION);
+    }
+    for (const hole of holes) {
+      result = evaluator.evaluate(result, meshToBrush(hole), SUBTRACTION);
+    }
+    resultName = holes.length ? "Unión con huecos" : "Unión";
+  } else {
+    const op = operation === "subtract" ? SUBTRACTION : INTERSECTION;
+    result = meshToBrush(meshes[0]);
+    resultMaterial = getMeta(meshes[0])?.material;
+    for (let i = 1; i < meshes.length; i += 1) {
+      result = evaluator.evaluate(result, meshToBrush(meshes[i]), op);
+    }
+    resultName = operation === "subtract" ? "Resta" : "Intersección";
   }
+
   result.geometry.computeVertexNormals();
-  const meta = baseMeta("csg", operation === "union" ? "Unión" : operation === "subtract" ? "Resta" : "Intersección");
+  const meta = baseMeta("csg", resultName, {}, resultMaterial ?? randomMaterialPreset());
   const output = new THREE.Mesh(result.geometry.clone(), materialFor(meta.material));
   setMeta(output, meta);
   return output;
