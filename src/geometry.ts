@@ -3,41 +3,61 @@ import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import helvetikerRegular from "three/examples/fonts/helvetiker_regular.typeface.json";
 import { Brush, Evaluator, ADDITION, SUBTRACTION, INTERSECTION } from "three-bvh-csg";
 import { getMeta, makeId, setMeta, type MaterialPreset, type ShapeKind, type SolidMode, type TinkerMeta } from "./model";
 
 export const MATERIAL_PALETTE: Array<{ id: MaterialPreset; color: number; label: string; metalness?: number; roughness?: number }> = [
-  { id: "red", color: 0xe74c3c, label: "Rojo" },
-  { id: "orange", color: 0xf97316, label: "Naranja" },
-  { id: "amber", color: 0xf59e0b, label: "Ámbar" },
-  { id: "yellow", color: 0xfacc15, label: "Amarillo" },
-  { id: "lime", color: 0x84cc16, label: "Lima" },
-  { id: "green", color: 0x22c55e, label: "Verde" },
-  { id: "emerald", color: 0x10b981, label: "Esmeralda" },
-  { id: "teal", color: 0x14b8a6, label: "Turquesa" },
-  { id: "cyan", color: 0x06b6d4, label: "Cian" },
-  { id: "sky", color: 0x38bdf8, label: "Celeste" },
-  { id: "blue", color: 0x3b82f6, label: "Azul" },
-  { id: "indigo", color: 0x6366f1, label: "Índigo" },
-  { id: "violet", color: 0x8b5cf6, label: "Violeta" },
-  { id: "purple", color: 0xa855f7, label: "Púrpura" },
-  { id: "fuchsia", color: 0xd946ef, label: "Fucsia" },
-  { id: "pink", color: 0xec4899, label: "Rosa" },
-  { id: "rose", color: 0xf43f5e, label: "Rosado" },
-  { id: "brown", color: 0x8b5a3c, label: "Marrón" },
-  { id: "tan", color: 0xd2a679, label: "Arena" },
-  { id: "gray", color: 0x9ca3af, label: "Gris" },
-  { id: "slate", color: 0x64748b, label: "Pizarra" },
-  { id: "black", color: 0x1f2937, label: "Negro" },
-  { id: "white", color: 0xf8fafc, label: "Blanco" },
-  { id: "gold", color: 0xd4af37, label: "Oro", metalness: 1, roughness: 0.18 },
-  { id: "silver", color: 0xcbd5e1, label: "Plata", metalness: 1, roughness: 0.22 },
+  // Tinkercad-inspired 3 x 12 palette, sampled directly from the reference UI.
+  { id: "lightRed", color: 0xe9968c, label: "Rojo claro" },
+  { id: "peach", color: 0xfbc59a, label: "Durazno" },
+  { id: "cream", color: 0xf8e6b7, label: "Crema" },
+  { id: "mint", color: 0xc8e4bd, label: "Verde claro" },
+  { id: "paleCyan", color: 0xb0e8ef, label: "Cian claro" },
+  { id: "sky", color: 0x85cde6, label: "Celeste" },
+  { id: "periwinkle", color: 0xaebeed, label: "Azul claro" },
+  { id: "lavender", color: 0xd3bfe5, label: "Lavanda" },
+  { id: "palePink", color: 0xefb1d4, label: "Rosa claro" },
+  { id: "sand", color: 0xe2c095, label: "Arena" },
+  { id: "white", color: 0xfafafa, label: "Blanco" },
+  { id: "gray", color: 0xa7adb1, label: "Gris" },
+
+  { id: "red", color: 0xe91d2d, label: "Rojo" },
+  { id: "orange", color: 0xf5831f, label: "Naranja" },
+  { id: "yellow", color: 0xffdd1a, label: "Amarillo" },
+  { id: "green", color: 0x46b749, label: "Verde" },
+  { id: "aqua", color: 0x75cedb, label: "Aqua" },
+  { id: "cyan", color: 0x009fd7, label: "Cian" },
+  { id: "royal", color: 0x3b55a3, label: "Azul" },
+  { id: "purple", color: 0x7e3f98, label: "Púrpura" },
+  { id: "fuchsia", color: 0xd70b8c, label: "Fucsia" },
+  { id: "brown", color: 0xa97b50, label: "Marrón" },
+  { id: "lightGray", color: 0xdde2e4, label: "Gris claro" },
+  { id: "darkGray", color: 0x61676a, label: "Gris oscuro" },
+
+  { id: "darkRed", color: 0x951a21, label: "Bordó" },
+  { id: "vermilion", color: 0xe35b22, label: "Bermellón" },
+  { id: "ochre", color: 0xe1ad34, label: "Ocre" },
+  { id: "forest", color: 0x126936, label: "Verde bosque" },
+  { id: "darkTeal", color: 0x1c505a, label: "Petróleo" },
+  { id: "deepCyan", color: 0x0076a9, label: "Cian oscuro" },
+  { id: "navy", color: 0x192e62, label: "Azul marino" },
+  { id: "deepPurple", color: 0x492e72, label: "Violeta oscuro" },
+  { id: "wine", color: 0x901c53, label: "Vino" },
+  { id: "darkBrown", color: 0x603913, label: "Marrón oscuro" },
+  { id: "silverGray", color: 0xbfc7cc, label: "Gris plata" },
+  { id: "black", color: 0x2b2e31, label: "Negro" },
 ];
 
-const RANDOM_PRESETS = MATERIAL_PALETTE.filter(({ id }) => !["black", "white", "gray", "slate", "gold", "silver"].includes(id));
+const SPECIAL_MATERIALS: Partial<Record<MaterialPreset, { color: number; metalness: number; roughness: number }>> = {
+  gold: { color: 0xd4af37, metalness: 1, roughness: 0.18 },
+  silver: { color: 0xcbd5e1, metalness: 1, roughness: 0.22 },
+};
+
+const RANDOM_PRESETS = MATERIAL_PALETTE.filter(({ id }) => !["white", "gray", "lightGray", "darkGray", "silverGray", "black"].includes(id));
 
 export function randomMaterialPreset(): MaterialPreset {
-  return RANDOM_PRESETS[Math.floor(Math.random() * RANDOM_PRESETS.length)]?.id ?? "blue";
+  return RANDOM_PRESETS[Math.floor(Math.random() * RANDOM_PRESETS.length)]?.id ?? "cyan";
 }
 
 export function materialFor(preset: MaterialPreset, mode: SolidMode = "solid") {
@@ -53,7 +73,15 @@ export function materialFor(preset: MaterialPreset, mode: SolidMode = "solid") {
       side: THREE.DoubleSide,
     });
   }
-  const swatch = MATERIAL_PALETTE.find((item) => item.id === preset) ?? MATERIAL_PALETTE[10];
+  const special = SPECIAL_MATERIALS[preset];
+  if (special) {
+    return new THREE.MeshStandardMaterial({
+      color: special.color,
+      roughness: special.roughness,
+      metalness: special.metalness,
+    });
+  }
+  const swatch = MATERIAL_PALETTE.find((item) => item.id === preset) ?? MATERIAL_PALETTE[17];
   return new THREE.MeshStandardMaterial({
     color: swatch.color,
     roughness: swatch.roughness ?? 0.42,
@@ -101,7 +129,7 @@ export function createSphere(radius = 10, segments = 48) {
 
 export async function createText(text: string, depth = 2, height = 12) {
   const loader = new FontLoader();
-  const font = await loader.loadAsync("https://threejs.org/examples/fonts/helvetiker_regular.typeface.json");
+  const font = loader.parse(helvetikerRegular as any);
   const geometry = new TextGeometry(text, {
     font,
     size: height,
@@ -160,7 +188,7 @@ function meshToBrush(mesh: THREE.Mesh) {
   mesh.updateMatrixWorld(true);
   const geometry = mesh.geometry.clone();
   geometry.applyMatrix4(mesh.matrixWorld);
-  return new Brush(geometry, materialFor("blue"));
+  return new Brush(geometry, materialFor("cyan"));
 }
 
 export function booleanMeshes(meshes: THREE.Mesh[], operation: "union" | "subtract" | "intersect") {
