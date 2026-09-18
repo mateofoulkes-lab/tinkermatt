@@ -1,0 +1,122 @@
+/* v0.4.4 — compact rotation controls + settings/PWA menu */
+
+/* The manipulator selector now lives inside the gear menu. */
+.tm-settings-widget-choice {
+  display: grid !important;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  min-width: 0 !important;
+}
+.tm-settings-widget-choice > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334b5a;
+}
+.tm-settings-widget-choice select {
+  min-width: 112px;
+  height: 30px;
+  border: 1px solid #c9d6de;
+  border-radius: 6px;
+  background: #fff;
+  color: #334b5a;
+  padding: 0 8px;
+}
+
+.tm-settings-button {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #476171;
+  cursor: default;
+}
+.tm-settings-button:hover {
+  background: #edf6fa;
+  border-color: #c5dde8;
+}
+.tm-settings-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.tm-settings-menu {
+  position: fixed;
+  z-index: 5000;
+  width: 286px;
+  padding: 10px;
+  border: 1px solid #cbd7de;
+  border-radius: 8px;
+  background: rgba(255,255,255,.985);
+  box-shadow: 0 10px 32px rgba(28, 52, 67, .18);
+  color: #334b5a;
+}
+.tm-settings-menu.hidden { display: none; }
+.tm-settings-title {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 2px 9px;
+  border-bottom: 1px solid #e3ebef;
+  margin-bottom: 9px;
+}
+.tm-settings-section {
+  padding: 3px 2px 10px;
+  border-bottom: 1px solid #e3ebef;
+  margin-bottom: 8px;
+}
+.tm-install-pwa {
+  width: 100%;
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #334b5a;
+  cursor: default;
+}
+.tm-install-pwa:hover:not(:disabled) {
+  background: #edf6fa;
+  border-color: #c5dde8;
+}
+.tm-install-pwa:disabled { opacity: .56; }
+.tm-install-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #0b92c9;
+}
+.tm-install-icon svg { width: 18px; height: 18px; }
+.tm-install-pwa b {
+  display: block;
+  font-size: 12px;
+  line-height: 1.25;
+}
+.tm-install-pwa small {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: #748995;
+  line-height: 1.25;
+  font-weight: 400;
+}
+.tm-install-note {
+  padding: 4px 8px 2px 40px;
+  min-height: 16px;
+  color: #81939d;
+  font-size: 9px;
+  line-height: 1.3;
+}
