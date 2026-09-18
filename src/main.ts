@@ -1,9 +1,67 @@
 import * as THREE from "three";
+import { icon, type IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import {
+  faArrowPointer,
+  faArrowsUpDownLeftRight,
+  faRotate,
+  faExpand,
+  faCopy,
+  faObjectGroup,
+  faObjectUngroup,
+  faCircleHalfStroke,
+  faShapes,
+  faMinus,
+  faCrosshairs,
+  faCircle,
+  faStop,
+  faRepeat,
+  faFileImport,
+  faFileExport,
+  faCube,
+  faDatabase,
+  faFont,
+  faVectorSquare,
+  faGear,
+} from "@fortawesome/free-solid-svg-icons";
 import "./style.css";
 import { TinkerEditor } from "./editor";
 import { getMeta, type MaterialPreset, type ReferenceKind } from "./model";
 
 const qs = <T extends HTMLElement>(selector: string) => document.querySelector(selector) as T;
+
+const faIcons: Record<string, IconDefinition> = {
+  select: faArrowPointer,
+  move: faArrowsUpDownLeftRight,
+  rotate: faRotate,
+  scale: faExpand,
+  duplicate: faCopy,
+  group: faObjectGroup,
+  ungroup: faObjectUngroup,
+  hole: faCircleHalfStroke,
+  union: faShapes,
+  subtract: faMinus,
+  intersect: faCrosshairs,
+  record: faCircle,
+  repeat: faRepeat,
+  import: faFileImport,
+  export: faFileExport,
+  box: faCube,
+  cylinder: faDatabase,
+  sphere: faCircle,
+  text: faFont,
+  svg: faVectorSquare,
+  thread: faGear,
+  bevel: faCube,
+};
+
+function mountFaIcons() {
+  document.querySelectorAll<HTMLElement>("[data-fa]").forEach((element) => {
+    const definition = faIcons[element.dataset.fa ?? ""];
+    if (definition) element.innerHTML = icon(definition).html.join("");
+  });
+}
+
+mountFaIcons();
 
 const viewport = qs<HTMLElement>("#viewport");
 const editor = new TinkerEditor(viewport);
@@ -26,6 +84,12 @@ const transformButtons = {
 
 function setStatus(text: string) {
   status.textContent = text;
+}
+
+function setRecordButton(active: boolean) {
+  recordButton.classList.toggle("active-recording", active);
+  const symbol = icon(active ? faStop : faCircle).html.join("");
+  recordButton.innerHTML = `<span class="fa-icon">${symbol}</span><span class="record-label">${active ? "Detener" : "Grabar"}</span>`;
 }
 
 function setTransformUi(mode: "translate" | "rotate" | "scale") {
@@ -130,6 +194,7 @@ svgInput.addEventListener("change", async () => {
 
 const stlInput = qs<HTMLInputElement>("#stl-file");
 qs("#import-stl").addEventListener("click", () => stlInput.click());
+qs("#import-stl-top").addEventListener("click", () => stlInput.click());
 stlInput.addEventListener("change", async () => {
   const file = stlInput.files?.[0];
   if (!file) return;
@@ -159,8 +224,7 @@ editor.on("selection", refreshInspector);
 editor.on("changed", refreshInspector);
 editor.on("status", setStatus);
 editor.on("recording", (active, count) => {
-  recordButton.classList.toggle("active-recording", active);
-  recordButton.textContent = active ? "■ Detener" : "● Grabar";
+  setRecordButton(active);
   macroPill.classList.toggle("hidden", !active && count === 0);
   macroPill.textContent = active ? `Grabando · ${count} acción(es)` : `Macro · ${count} acción(es)`;
 });
@@ -191,8 +255,6 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-// API semántica deliberadamente separada de la interfaz. El futuro MCP llama a esto,
-// no simula clicks. También es útil para pruebas desde la consola del navegador.
 const semanticApi = {
   createBox: () => editor.addPrimitive("box"),
   createCylinder: () => editor.addPrimitive("cylinder"),
@@ -217,4 +279,5 @@ declare global {
   }
 }
 
+setRecordButton(false);
 setStatus("TinkerMatt listo. Creá una forma desde el panel derecho.");
