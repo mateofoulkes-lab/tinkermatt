@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export type ShapeKind = "box" | "cylinder" | "sphere" | "text" | "svg" | "stl" | "group" | "csg";
+export type ShapeKind = "box" | "cylinder" | "sphere" | "text" | "svg" | "stl" | "group" | "csg" | "thread";
 export type SolidMode = "solid" | "hole";
 export type ReferenceKind = "face" | "edge" | "vertex" | "zone" | "axis" | "plane";
 
@@ -11,6 +11,33 @@ export interface SemanticReference {
   note?: string;
 }
 
+export type MaterialPreset =
+  | "red"
+  | "orange"
+  | "amber"
+  | "yellow"
+  | "lime"
+  | "green"
+  | "emerald"
+  | "teal"
+  | "cyan"
+  | "sky"
+  | "blue"
+  | "indigo"
+  | "violet"
+  | "purple"
+  | "fuchsia"
+  | "pink"
+  | "rose"
+  | "brown"
+  | "tan"
+  | "gray"
+  | "slate"
+  | "black"
+  | "white"
+  | "gold"
+  | "silver";
+
 export interface TinkerMeta {
   id: string;
   name: string;
@@ -20,8 +47,6 @@ export interface TinkerMeta {
   references: SemanticReference[];
   params?: Record<string, number | string | boolean>;
 }
-
-export type MaterialPreset = "blue" | "gray" | "gold" | "red";
 
 export type TransformSnapshot = {
   position: [number, number, number];
@@ -57,6 +82,22 @@ export function snapshotTransform(object: THREE.Object3D): TransformSnapshot {
   };
 }
 
+function cloneMaterialsAndGeometry(object: THREE.Object3D) {
+  object.traverse((node) => {
+    if (node instanceof THREE.Mesh) {
+      node.geometry = node.geometry.clone();
+      if (Array.isArray(node.material)) node.material = node.material.map((material) => material.clone());
+      else node.material = node.material.clone();
+    }
+  });
+}
+
+export function clonePreservingIds<T extends THREE.Object3D>(source: T): T {
+  const copy = source.clone(true) as T;
+  cloneMaterialsAndGeometry(copy);
+  return copy;
+}
+
 export function cloneWithFreshIds<T extends THREE.Object3D>(source: T): T {
   const copy = source.clone(true) as T;
   copy.traverse((node) => {
@@ -69,11 +110,7 @@ export function cloneWithFreshIds<T extends THREE.Object3D>(source: T): T {
         references: meta.references.map((ref) => ({ ...ref, id: makeId("ref") })),
       });
     }
-    if (node instanceof THREE.Mesh) {
-      node.geometry = node.geometry.clone();
-      if (Array.isArray(node.material)) node.material = node.material.map((m) => m.clone());
-      else node.material = node.material.clone();
-    }
   });
+  cloneMaterialsAndGeometry(copy);
   return copy;
 }
