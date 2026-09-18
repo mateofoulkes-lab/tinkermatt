@@ -106,7 +106,19 @@ function roundedGeometry(values: BoxValues) {
   const maxRadius = Math.max(0, Math.min(values.length, values.width, values.height) / 2 - 0.0001);
   const radius = Math.min(Math.max(0, values.radius), maxRadius);
   if (radius <= 0.0001) return new THREE.BoxGeometry(values.length, values.width, values.height);
-  return new RoundedBoxGeometry(values.length, values.width, values.height, values.steps, radius);
+
+  const geometry = new RoundedBoxGeometry(values.length, values.width, values.height, values.steps, radius);
+
+  // Tinkercad semantics: one step is a straight chamfer. RoundedBoxGeometry's
+  // generated normals smooth even its lowest segment count, which makes the
+  // bevel look curved. Recompute face normals on the non-indexed geometry so
+  // step 1 is visibly planar; step 2+ keeps the smooth rounded interpolation.
+  if (values.steps === 1) {
+    geometry.deleteAttribute("normal");
+    geometry.computeVertexNormals();
+  }
+
+  return geometry;
 }
 
 function rebuildBox(object: THREE.Mesh, next: BoxValues, preserveBottomForHeight = false) {
