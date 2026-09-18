@@ -1,6 +1,28 @@
 import * as THREE from "three";
 
-export type ShapeKind = "box" | "cylinder" | "sphere" | "text" | "svg" | "stl" | "group" | "csg" | "thread";
+export type ShapeKind =
+  | "box"
+  | "cylinder"
+  | "sphere"
+  | "cone"
+  | "pyramid"
+  | "roof"
+  | "wedge"
+  | "halfCylinder"
+  | "dome"
+  | "torus"
+  | "washer"
+  | "prism"
+  | "polyhedron"
+  | "sketch"
+  | "sketchExtrude"
+  | "revolve"
+  | "text"
+  | "svg"
+  | "stl"
+  | "group"
+  | "csg"
+  | "thread";
 export type SolidMode = "solid" | "hole";
 export type ReferenceKind = "face" | "edge" | "vertex" | "zone" | "axis" | "plane";
 
