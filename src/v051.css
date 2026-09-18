@@ -1,0 +1,77 @@
+/* v0.5.1 — larger readable child tools; parents mirror colorful active child */
+
+/* Legacy Photoshop-style families */
+.tm-tool-flyout {
+  gap: 6px !important;
+  padding: 7px !important;
+  border-radius: 8px !important;
+}
+.tm-tool-flyout-item {
+  width: 88px !important;
+  min-height: 96px !important;
+  grid-template-rows: 60px auto !important;
+  gap: 5px !important;
+  padding: 6px !important;
+  font-size: 11.5px !important;
+  line-height: 1.15 !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
+.tm-tool-flyout-item .mini-shape,
+.tm-tool-flyout-item .mini-shape svg {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+/* v0.5 advanced/sketch families */
+.tm-v050-flyout {
+  gap: 6px !important;
+  padding: 7px !important;
+  border-radius: 8px !important;
+  max-width: calc(100vw - 90px);
+  overflow-x: auto;
+}
+.tm-v050-choice {
+  width: 88px !important;
+  min-width: 88px !important;
+  min-height: 96px !important;
+  grid-template-rows: 60px auto !important;
+  gap: 5px !important;
+  padding: 6px !important;
+  font-size: 11.5px !important;
+  line-height: 1.15 !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+}
+.tm-v050-choice svg {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+/* Every parent displays the same real SVG as its active child. */
+.tm-tool-current,
+.tm-v050-parent {
+  color: inherit !important;
+}
+.tm-tool-current svg,
+.tm-v050-parent svg {
+  width: 44px !important;
+  height: 44px !important;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .tm-tool-flyout-item,
+  .tm-v050-choice {
+    width: 78px !important;
+    min-width: 78px !important;
+    min-height: 88px !important;
+    font-size: 10.5px !important;
+  }
+  .tm-tool-flyout-item .mini-shape,
+  .tm-tool-flyout-item .mini-shape svg,
+  .tm-v050-choice svg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+}
