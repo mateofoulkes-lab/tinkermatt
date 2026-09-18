@@ -4,135 +4,162 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f9fb" />
+    <link rel="icon" type="image/png" href="data:image/png;base64,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" />
     <title>TinkerMatt</title>
   </head>
   <body>
     <div id="app">
-      <header class="app-header">
-        <div class="titlebar">
-          <div class="brand-mark" aria-hidden="true">TM</div>
-          <div class="brand">TinkerMatt</div>
-          <div class="design-name">Diseño sin nombre</div>
-          <div class="title-actions">
-            <button id="import-stl-top" class="text-action" type="button" title="Importar STL">
-              <span class="fa-icon" data-fa="import"></span><span>Importar</span>
-            </button>
-            <button id="export-stl" class="text-action primary" type="button" title="Exportar STL">
-              <span class="fa-icon" data-fa="export"></span><span>Exportar</span>
-            </button>
-          </div>
+      <header class="toolbar-shell">
+        <div class="logo-wrap" title="TinkerMatt">
+          <img class="app-logo" alt="TinkerMatt" src="data:image/png;base64,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" />
         </div>
 
-        <div class="commandbar" aria-label="Herramientas">
-          <div class="command-group">
-            <button id="tool-select" class="icon-button active" title="Seleccionar (1)" aria-label="Seleccionar"><span class="fa-icon" data-fa="select"></span></button>
-            <button id="tool-move" class="icon-button" title="Mover (2)" aria-label="Mover"><span class="fa-icon" data-fa="move"></span></button>
-            <button id="tool-rotate" class="icon-button" title="Rotar (3)" aria-label="Rotar"><span class="fa-icon" data-fa="rotate"></span></button>
-            <button id="tool-scale" class="icon-button" title="Escalar (4)" aria-label="Escalar"><span class="fa-icon" data-fa="scale"></span></button>
-          </div>
+        <div class="design-name">Diseño sin nombre</div>
 
-          <div class="command-divider"></div>
+        <div class="tool-group">
+          <button id="tool-select" class="icon-button active" title="Seleccionar"><span class="fa-icon" data-fa="select"></span></button>
+          <button id="tool-move" class="icon-button" title="Mover · G o M"><span class="fa-icon" data-fa="move"></span></button>
+          <button id="tool-rotate" class="icon-button" title="Rotar · R"><span class="fa-icon" data-fa="rotate"></span></button>
+          <button id="tool-scale" class="icon-button" title="Escalar · S"><span class="fa-icon" data-fa="scale"></span></button>
+        </div>
 
-          <div class="command-group">
-            <button id="duplicate" class="icon-button" title="Duplicar (Ctrl+D)" aria-label="Duplicar"><span class="fa-icon" data-fa="duplicate"></span></button>
-            <button id="group" class="icon-button" title="Agrupar" aria-label="Agrupar"><span class="fa-icon" data-fa="group"></span></button>
-            <button id="ungroup" class="icon-button" title="Desagrupar" aria-label="Desagrupar"><span class="fa-icon" data-fa="ungroup"></span></button>
-            <button id="hole" class="icon-button" title="Alternar sólido / hueco" aria-label="Sólido o hueco"><span class="fa-icon" data-fa="hole"></span></button>
-          </div>
+        <div class="toolbar-divider"></div>
 
-          <div class="command-divider"></div>
+        <div class="tool-group">
+          <button id="undo" class="icon-button" title="Deshacer · Ctrl+Z">↶</button>
+          <button id="duplicate" class="icon-button" title="Duplicar · Ctrl+D"><span class="fa-icon" data-fa="duplicate"></span></button>
+          <button id="group" class="icon-button" title="Agrupar"><span class="fa-icon" data-fa="group"></span></button>
+          <button id="ungroup" class="icon-button" title="Desagrupar"><span class="fa-icon" data-fa="ungroup"></span></button>
+          <button id="hole" class="icon-button" title="Alternar sólido / hueco"><span class="fa-icon" data-fa="hole"></span></button>
+        </div>
 
-          <div class="command-group boolean-group">
-            <button id="bool-union" class="icon-button" title="Unión booleana" aria-label="Unión"><span class="fa-icon" data-fa="union"></span></button>
-            <button id="bool-subtract" class="icon-button" title="Resta booleana" aria-label="Restar"><span class="fa-icon" data-fa="subtract"></span></button>
-            <button id="bool-intersect" class="icon-button" title="Intersección booleana" aria-label="Intersección"><span class="fa-icon" data-fa="intersect"></span></button>
-          </div>
+        <div class="toolbar-divider"></div>
 
-          <div class="command-divider"></div>
+        <div class="tool-group boolean-group">
+          <button id="bool-union" class="icon-button" title="Unión"><span class="fa-icon" data-fa="union"></span></button>
+          <button id="bool-subtract" class="icon-button" title="Resta"><span class="fa-icon" data-fa="subtract"></span></button>
+          <button id="bool-intersect" class="icon-button" title="Intersección"><span class="fa-icon" data-fa="intersect"></span></button>
+        </div>
 
-          <div class="command-group align-group">
-            <button id="align-x" class="axis-button" title="Alinear centros en X">X</button>
-            <button id="align-y" class="axis-button" title="Alinear centros en Y">Y</button>
-            <button id="align-z" class="axis-button" title="Alinear centros en Z">Z</button>
-          </div>
+        <div class="toolbar-divider"></div>
 
-          <div class="command-spacer"></div>
+        <div class="tool-group align-group">
+          <button id="align-x" class="axis-button" title="Alinear X">X</button>
+          <button id="align-y" class="axis-button" title="Alinear Y">Y</button>
+          <button id="align-z" class="axis-button" title="Alinear Z">Z</button>
+        </div>
 
-          <div class="command-group macro-controls">
-            <button id="record" class="text-action record" type="button"><span class="fa-icon" data-fa="record"></span><span class="record-label">Grabar</span></button>
-            <button id="repeat" class="text-action" type="button" title="Repetir última grabación"><span class="fa-icon" data-fa="repeat"></span><span>Repetir</span></button>
-            <input id="repeat-count" type="number" min="1" max="100" value="1" title="Cantidad de repeticiones" />
-          </div>
+        <div class="toolbar-divider"></div>
+
+        <div class="snap-controls" title="Shift = fino · Ctrl = grueso durante transformaciones">
+          <label class="check-label"><input id="snap-enabled" type="checkbox" checked /> Snap</label>
+          <label class="grid-label">Grid <input id="grid-size" type="number" min="0.01" step="0.1" value="1" /> mm</label>
+        </div>
+
+        <div class="toolbar-spacer"></div>
+
+        <div class="tool-group macro-controls">
+          <button id="record" class="text-action record"><span class="fa-icon" data-fa="record"></span><span class="record-label">Grabar</span></button>
+          <button id="repeat" class="text-action"><span class="fa-icon" data-fa="repeat"></span><span>Repetir</span></button>
+          <input id="repeat-count" type="number" min="1" max="100" value="1" title="Repeticiones" />
+        </div>
+
+        <div class="tool-group io-controls">
+          <button id="import-stl-top" class="text-action" title="Importar STL"><span class="fa-icon" data-fa="import"></span><span>Importar</span></button>
+          <button id="export-stl" class="text-action primary" title="Exportar STL"><span class="fa-icon" data-fa="export"></span><span>Exportar</span></button>
         </div>
       </header>
 
       <main class="workspace">
+        <aside class="library-panel">
+          <div class="panel-heading">Formas</div>
+
+          <details class="library-family" open>
+            <summary><span class="family-icon"><span class="fa-icon" data-fa="box"></span></span><span>Cubo</span></summary>
+            <button class="library-item" data-shape="box" data-mode="solid"><span class="mini-shape solid-mini"><span class="fa-icon" data-fa="box"></span></span><span>Cubo sólido</span></button>
+            <button class="library-item" data-shape="box" data-mode="hole"><span class="mini-shape hole-mini"><span class="fa-icon" data-fa="box"></span></span><span>Cubo hueco</span></button>
+          </details>
+
+          <details class="library-family" open>
+            <summary><span class="family-icon cylinder-color"><span class="fa-icon" data-fa="cylinder"></span></span><span>Cilindro</span></summary>
+            <button class="library-item" data-shape="cylinder" data-mode="solid"><span class="mini-shape cylinder-color"><span class="fa-icon" data-fa="cylinder"></span></span><span>Cilindro sólido</span></button>
+            <button class="library-item" data-shape="cylinder" data-mode="hole"><span class="mini-shape hole-mini"><span class="fa-icon" data-fa="cylinder"></span></span><span>Cilindro hueco</span></button>
+            <button class="library-item disabled-item" id="thread-placeholder"><span class="mini-shape"><span class="fa-icon" data-fa="thread"></span></span><span>Cilindro roscado</span><small>próx.</small></button>
+          </details>
+
+          <details class="library-family">
+            <summary><span class="family-icon sphere-color"><span class="fa-icon" data-fa="sphere"></span></span><span>Esfera</span></summary>
+            <button class="library-item" data-shape="sphere" data-mode="solid"><span class="mini-shape sphere-color"><span class="fa-icon" data-fa="sphere"></span></span><span>Esfera sólida</span></button>
+            <button class="library-item" data-shape="sphere" data-mode="hole"><span class="mini-shape hole-mini"><span class="fa-icon" data-fa="sphere"></span></span><span>Esfera hueca</span></button>
+          </details>
+
+          <details class="library-family" open>
+            <summary><span class="family-icon"><span class="fa-icon" data-fa="text"></span></span><span>Contenido</span></summary>
+            <button class="library-item" id="add-text"><span class="mini-shape text-color"><span class="fa-icon" data-fa="text"></span></span><span>Texto extruido</span></button>
+            <button class="library-item" id="import-svg"><span class="mini-shape svg-color"><span class="fa-icon" data-fa="svg"></span></span><span>SVG extruido</span></button>
+            <button class="library-item" id="import-stl"><span class="mini-shape stl-color"><span class="fa-icon" data-fa="import"></span></span><span>Importar STL</span></button>
+          </details>
+
+          <details class="library-family">
+            <summary><span class="family-icon"><span class="fa-icon" data-fa="bevel"></span></span><span>Modificadores</span></summary>
+            <button class="library-item disabled-item" id="bevel-placeholder"><span class="mini-shape"><span class="fa-icon" data-fa="bevel"></span></span><span>Bevel / Fillet</span><small>próx.</small></button>
+          </details>
+
+          <input id="svg-file" type="file" accept="image/svg+xml,.svg" hidden />
+          <input id="stl-file" type="file" accept=".stl,model/stl" hidden />
+        </aside>
+
         <section id="viewport" class="viewport">
-          <div class="viewport-chip">Shift + click: selección múltiple</div>
+          <div class="viewport-chip">Shift + click: selección múltiple · G/M mover · R rotar · S escalar · luego X/Y/Z</div>
           <div id="macro-pill" class="macro-pill hidden"></div>
           <div class="workplane-label">Plano de trabajo · mm</div>
         </section>
 
-        <aside class="shapes-panel">
-          <div class="panel-tabs">
-            <button class="panel-tab active" type="button">Formas</button>
-            <button class="panel-tab" type="button" title="Próximamente">Favoritos</button>
-          </div>
-          <div class="panel-section-head">
-            <span>Formas básicas</span>
-          </div>
-          <div class="shape-grid">
-            <button class="shape-card" data-shape="box"><span class="shape-glyph"><span class="fa-icon" data-fa="box"></span></span><b>Caja</b></button>
-            <button class="shape-card" data-shape="cylinder"><span class="shape-glyph orange"><span class="fa-icon" data-fa="cylinder"></span></span><b>Cilindro</b></button>
-            <button class="shape-card" data-shape="sphere"><span class="shape-glyph cyan"><span class="fa-icon" data-fa="sphere"></span></span><b>Esfera</b></button>
-            <button class="shape-card" id="add-text"><span class="shape-glyph magenta"><span class="fa-icon" data-fa="text"></span></span><b>Texto</b></button>
-            <button class="shape-card" id="import-svg"><span class="shape-glyph violet"><span class="fa-icon" data-fa="svg"></span></span><b>SVG</b></button>
-            <button class="shape-card" id="import-stl"><span class="shape-glyph slate"><span class="fa-icon" data-fa="import"></span></span><b>STL</b></button>
-          </div>
-
-          <div class="panel-section-head generator-head">
-            <span>Generadores</span>
-          </div>
-          <div class="shape-grid">
-            <button class="shape-card disabled-card" id="thread-placeholder" title="Generador de rosca paramétrico: próxima etapa"><span class="shape-glyph"><span class="fa-icon" data-fa="thread"></span></span><b>Rosca</b><small>próx.</small></button>
-            <button class="shape-card disabled-card" id="bevel-placeholder" title="Bevel / fillet por arista: próxima etapa"><span class="shape-glyph"><span class="fa-icon" data-fa="bevel"></span></span><b>Bevel</b><small>próx.</small></button>
-          </div>
-
-          <input id="svg-file" type="file" accept="image/svg+xml,.svg" hidden />
-          <input id="stl-file" type="file" accept=".stl,model/stl" hidden />
+        <aside class="outliner-panel">
+          <div class="panel-heading outliner-heading"><span>Objetos</span><span class="panel-subtle">escena</span></div>
+          <div id="outliner-tree" class="outliner-tree"></div>
         </aside>
       </main>
 
       <section id="inspector" class="inspector hidden">
         <div class="inspector-head">
           <input id="object-name" value="Objeto" aria-label="Nombre del objeto" />
-          <button id="close-inspector" class="inspector-close" title="Cerrar" aria-label="Cerrar">×</button>
+          <button id="close-inspector" class="inspector-close" title="Cerrar">×</button>
         </div>
+
         <div class="solid-hole-strip">
-          <button type="button" class="mode-preview solid-preview active-preview" tabindex="-1"><span class="mode-dot solid-dot"></span><span>Sólido</span></button>
-          <button type="button" class="mode-preview" tabindex="-1"><span class="mode-dot hole-dot"></span><span>Hueco</span></button>
+          <button id="mode-solid" type="button" class="mode-preview"><span class="mode-dot solid-dot"></span><span>Sólido</span></button>
+          <button id="mode-hole" type="button" class="mode-preview"><span class="mode-dot hole-dot"></span><span>Hueco</span></button>
         </div>
-        <div class="inspector-section-title">Transformación</div>
-        <div class="inspector-grid">
-          <label>X <input id="pos-x" type="number" step="0.1" /></label>
-          <label>Y <input id="pos-y" type="number" step="0.1" /></label>
-          <label>Z <input id="pos-z" type="number" step="0.1" /></label>
-          <label>Rot X <input id="rot-x" type="number" step="1" /></label>
-          <label>Rot Y <input id="rot-y" type="number" step="1" /></label>
-          <label>Rot Z <input id="rot-z" type="number" step="1" /></label>
+
+        <div class="inspector-section-title">Posición</div>
+        <div class="property-grid">
+          <label class="property-cell"><span class="scrub-label" data-input="pos-x" data-kind="position">X</span><input id="pos-x" type="number" step="0.1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="pos-y" data-kind="position">Y</span><input id="pos-y" type="number" step="0.1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="pos-z" data-kind="position">Z</span><input id="pos-z" type="number" step="0.1" /></label>
         </div>
-        <div class="dimensions" id="dimensions">—</div>
-        <label class="material-row">Material
-          <select id="material-select">
-            <option value="blue">Azul mate</option>
-            <option value="gray">Gris</option>
-            <option value="gold">Dorado metalizado</option>
-            <option value="red">Rojo</option>
-          </select>
-        </label>
-        <details id="refs-details">
+
+        <div class="inspector-section-title">Rotación</div>
+        <div class="property-grid">
+          <label class="property-cell"><span class="scrub-label" data-input="rot-x" data-kind="rotation">X</span><input id="rot-x" type="number" step="1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="rot-y" data-kind="rotation">Y</span><input id="rot-y" type="number" step="1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="rot-z" data-kind="rotation">Z</span><input id="rot-z" type="number" step="1" /></label>
+        </div>
+
+        <div class="inspector-section-title">Tamaño</div>
+        <div class="property-grid">
+          <label class="property-cell"><span class="scrub-label" data-input="size-x" data-kind="size">X</span><input id="size-x" type="number" min="0.01" step="0.1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="size-y" data-kind="size">Y</span><input id="size-y" type="number" min="0.01" step="0.1" /></label>
+          <label class="property-cell"><span class="scrub-label" data-input="size-z" data-kind="size">Z</span><input id="size-z" type="number" min="0.01" step="0.1" /></label>
+        </div>
+        <div id="selection-note" class="selection-note"></div>
+
+        <div class="inspector-section-title palette-title">Color</div>
+        <div id="material-palette" class="material-palette"></div>
+
+        <details id="refs-details" class="semantic-details">
           <summary>Referencias semánticas</summary>
-          <p class="muted">Opcionales. Sólo aparecen cuando las necesitás para nombrar caras, aristas, vértices o zonas.</p>
+          <p class="muted">Opcionales y ocultas hasta que las necesites para hablar de una cara, arista, vértice o zona.</p>
           <div id="refs-list" class="refs-list"></div>
           <div class="ref-add">
             <select id="ref-kind">
@@ -151,7 +178,7 @@
 
       <footer class="statusbar">
         <span id="status">Listo.</span>
-        <span class="status-right"><span>mm</span><span class="version">v0.2.1</span></span>
+        <span class="status-right"><span id="snap-status">Snap 1 mm</span><span class="version">v0.3.0</span></span>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
