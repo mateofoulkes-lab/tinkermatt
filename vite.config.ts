@@ -8,9 +8,13 @@ function tinkermattV04Bridge(): Plugin {
       const normalized = id.replace(/\\/g, "/");
       if (!normalized.endsWith("/src/main.ts")) return null;
       return {
-        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./v04\").then(() => import(\"./v041\")).then(() => import(\"./v042\"));\n`,
+        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./v04\").then(() => import(\"./v041\")).then(() => import(\"./v042\")).then(() => import(\"./v043\"));\n`,
         map: null,
       };
+    },
+    transformIndexHtml(html) {
+      if (html.includes("manifest.webmanifest")) return html;
+      return html.replace("</head>", '    <link rel="manifest" href="./manifest.webmanifest" />\n  </head>');
     },
   };
 }
