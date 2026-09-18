@@ -1,0 +1,58 @@
+/* v0.5.2 — parametric Box inspector */
+
+.tm-box-properties {
+  margin: 8px 0 10px;
+  padding: 8px 10px 10px;
+  border: 1px solid #e0e7eb;
+  border-radius: 7px;
+  background: #fff;
+}
+.tm-box-properties.hidden { display: none !important; }
+.tm-shape-properties-title {
+  margin: 0 0 8px;
+  color: #385363;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tm-param-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  margin: 7px 0;
+}
+.tm-param-row > label {
+  color: #6c7d88;
+  font-size: 11px;
+}
+.tm-param-control {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 7px;
+}
+.tm-param-range {
+  width: 100%;
+  min-width: 0;
+  height: 18px;
+  margin: 0;
+  accent-color: #0c9dd4;
+  cursor: default;
+}
+.tm-param-number {
+  width: 52px;
+  height: 25px;
+  box-sizing: border-box;
+  padding: 1px 4px;
+  border: 1px solid #ced9df;
+  border-radius: 12px;
+  background: #fff;
+  color: #516772;
+  font-size: 11px;
+  text-align: center;
+  outline: none;
+}
+.tm-param-number:focus {
+  border-color: #4aaed5;
+  box-shadow: 0 0 0 2px rgb(43 157 205 / 14%);
+}
