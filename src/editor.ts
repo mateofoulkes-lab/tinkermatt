@@ -364,6 +364,8 @@ export class TinkerEditor {
 
   setTransformMode(mode: TransformMode) {
     this.transform.setMode(mode);
+    const active = this.activeObject();
+    if (active) this.transform.attach(active);
     this.clearAxisConstraint();
     this.emit("status", mode === "translate" ? "Mover" : mode === "rotate" ? "Rotar" : "Escalar");
   }
@@ -391,7 +393,7 @@ export class TinkerEditor {
     this.snapEnabled = enabled;
     this.gridSize = Math.max(0.01, Number.isFinite(gridSize) ? gridSize : 1);
     this.updateSnapSettings();
-    this.emit("status", enabled ? `Snap ${this.gridSize:g} mm`.replace(":g", "") : "Snap desactivado.");
+    this.emit("status", enabled ? `Snap ${this.gridSize} mm` : "Snap desactivado.");
   }
 
   getSnap() {
@@ -561,7 +563,7 @@ export class TinkerEditor {
   applyBoolean(operation: "union" | "subtract" | "intersect") {
     const meshes = this.selection.filter((object): object is THREE.Mesh => object instanceof THREE.Mesh);
     if (meshes.length !== this.selection.length || meshes.length < 2) {
-      this.emit("status", "Para booleanas seleccioná dos o más sólidos simples (no grupos)." );
+      this.emit("status", "Para booleanas seleccioná dos o más sólidos simples (no grupos).");
       return;
     }
     this.checkpoint();
