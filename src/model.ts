@@ -24,13 +24,37 @@ export type ShapeKind =
   | "csg"
   | "thread";
 export type SolidMode = "solid" | "hole";
-export type ReferenceKind = "face" | "edge" | "vertex" | "zone" | "axis" | "plane";
+export type ReferenceKind = "face" | "edge" | "vertex" | "object" | "zone" | "axis" | "plane";
+
+export type SemanticFaceSelection = {
+  meshPath: number[];
+  triangles: number[];
+};
+
+export type SemanticEdgeSelection = {
+  meshPath: number[];
+  a: [number, number, number];
+  b: [number, number, number];
+};
+
+export type SemanticVertexSelection = {
+  meshPath: number[];
+  point: [number, number, number];
+};
+
+export type SemanticGeometrySelection = {
+  faces?: SemanticFaceSelection[];
+  edges?: SemanticEdgeSelection[];
+  vertices?: SemanticVertexSelection[];
+  objectIds?: string[];
+};
 
 export interface SemanticReference {
   id: string;
   kind: ReferenceKind;
   name: string;
   note?: string;
+  selection?: SemanticGeometrySelection;
   zone?: {
     points: [number, number, number][];
   };
@@ -145,7 +169,7 @@ export function cloneWithFreshIds<T extends THREE.Object3D>(source: T): T {
         ...structuredClone(meta),
         id: makeId(meta.kind),
         name: `${meta.name} copia`,
-        references: meta.references.map((ref) => ({ ...ref, id: makeId("ref") })),
+        references: meta.references.map((ref) => ({ ...structuredClone(ref), id: makeId("ref") })),
       });
     }
   });
