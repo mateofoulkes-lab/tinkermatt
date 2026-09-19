@@ -23,7 +23,7 @@ export default defineConfig({
   base: "./",
   resolve: {
     alias: {
-      "three/examples/fonts/droid/droid_mono_regular.typeface.json": "three/examples/fonts/droid/droid_sans_regular.typeface.json",
+      "three/examples/fonts/droid/droid_mono_regular.typeface.json": "three/examples/fonts/droid/droid_sans_mono_regular.typeface.json",
     },
   },
   plugins: [tinkermattV04Bridge()],
