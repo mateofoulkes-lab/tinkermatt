@@ -28,12 +28,13 @@ import "./v066-drag-post";
 import "./v064";
 import "./v065";
 import "./v066";
+import "./v067";
 
 const version = document.querySelector<HTMLElement>(".version");
-if (version) version.textContent = "v0.6.6";
+if (version) version.textContent = "v0.6.7";
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.6.6 listo.";
+if (status) status.textContent = "TinkerMatt v0.6.7 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
