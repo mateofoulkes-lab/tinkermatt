@@ -2,7 +2,7 @@
   gap: 7px;
 }
 
-/* The editable project-name input is the real project title.  The old static
+/* The editable project-name input is the real project title. The old static
    placeholder is kept in the DOM for compatibility, but no longer consumes
    toolbar space. */
 .tm-toolbar-v082 > .design-name,
@@ -10,8 +10,7 @@
   display: none !important;
 }
 
-/* Project/file cluster: title first, then Nuevo / Abrir / Guardar, matching the
-   cleaned-up reference layout. */
+/* Project/file cluster: title first, then Nuevo / Abrir / Guardar. */
 .tm-toolbar-v082 .tm-project-controls {
   display: inline-flex !important;
   align-items: center;
@@ -33,6 +32,19 @@
   height: 33px;
   padding: 0;
   flex: 0 0 33px;
+}
+
+/* Abrir y Guardar are plain monochrome toolbar actions. Only Nuevo/Limpiar
+   keeps its destructive accent inherited from the original control. */
+.tm-toolbar-v082 .tm-project-button:not(.tm-clear) {
+  color: #111 !important;
+  background: transparent;
+  border-color: transparent;
+}
+.tm-toolbar-v082 .tm-project-button:not(.tm-clear):hover {
+  color: #111 !important;
+  background: #eef4f7;
+  border-color: #d2dde4;
 }
 .tm-toolbar-v082 .tm-project-button.tm-clear {
   width: 33px;
@@ -71,7 +83,25 @@
   width: 39px;
 }
 
-/* Snap belongs to the workspace.  It floats next to the existing workplane
+/* Importar y Exportar are twins: same size, no boxed treatment on Exportar. */
+.tm-toolbar-v082 .io-controls #import-stl-top,
+.tm-toolbar-v082 .io-controls #export-stl,
+.tm-toolbar-v082 .io-controls #export-stl.text-action.primary {
+  min-height: 31px;
+  height: 31px;
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 11px;
+  line-height: normal;
+}
+.tm-toolbar-v082 .io-controls #import-stl-top .fa-icon,
+.tm-toolbar-v082 .io-controls #export-stl .fa-icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* Snap belongs to the workspace. It floats next to the existing workplane
    badge at the lower-right, exactly where the reference puts it. */
 #viewport > .tm-v082-snap-floating {
   position: absolute;
@@ -86,7 +116,7 @@
   box-shadow: 0 1px 4px rgb(25 54 73 / 10%);
 }
 
-/* In Edit mode v0.7.0 hides historical direct toolbar nodes.  Project/file
+/* In Edit mode v0.7.0 hides historical direct toolbar nodes. Project/file
    controls are intentionally part of the persistent shell now. */
 .tm-edit-mode .tm-toolbar-v082 > .tm-project-controls {
   display: inline-flex !important;
