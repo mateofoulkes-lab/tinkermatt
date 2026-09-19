@@ -1,4 +1,4 @@
-const CACHE = "tinkermatt-v081";
+const CACHE = "tinkermatt-v082";
 const CORE = ["./", "./manifest.webmanifest", "./tinkermatt-icon.svg"];
 
 self.addEventListener("install", (event) => {
