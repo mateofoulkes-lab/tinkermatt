@@ -21,12 +21,13 @@ import "./v058";
 import "./v059";
 import "./v060";
 import "./v061";
+import "./v063";
 
 const version = document.querySelector<HTMLElement>(".version");
-if (version) version.textContent = "v0.6.2";
+if (version) version.textContent = "v0.6.3";
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.6.2 listo.";
+if (status) status.textContent = "TinkerMatt v0.6.3 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
