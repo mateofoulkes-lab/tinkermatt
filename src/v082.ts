@@ -43,6 +43,7 @@ function arrangeToolbar() {
     const open = buttons.find((button) => /abrir|open/i.test(button.title));
     const save = buttons.find((button) => /guardar|save/i.test(button.title));
     const fileInput = projectControls.querySelector<HTMLInputElement>('input[type="file"]');
+    const autosave = projectControls.querySelector<HTMLElement>(".tm-autosave-badge");
 
     if (name) projectControls.append(name);
     if (fresh) {
@@ -53,8 +54,8 @@ function arrangeToolbar() {
     if (open) projectControls.append(open);
     if (save) projectControls.append(save);
     if (fileInput) projectControls.append(fileInput);
+    if (autosave) projectControls.append(autosave);
 
-    // Anything added later (for example the autosave indicator) remains intact.
     if (logo) logo.insertAdjacentElement("afterend", projectControls);
   }
 
@@ -96,8 +97,6 @@ function arrangeToolbar() {
     if (previousGone || nextGone) divider.classList.add("tm-v082-hidden");
   }
 
-  // File controls get their own subtle separator without requiring another DOM
-  // node, which keeps the layout stable on narrow screens.
   projectControls?.classList.add("tm-v082-file-cluster");
 }
 
