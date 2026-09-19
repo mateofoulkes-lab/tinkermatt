@@ -10,5 +10,7 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      - key: PUBLIC_BASE_URL
+        value: https://tinkermatt-mcp.onrender.com
       - key: ALLOWED_EDITOR_ORIGINS
         value: https://mateofoulkes-lab.github.io
