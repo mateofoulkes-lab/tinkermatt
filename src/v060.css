@@ -1,3 +1,58 @@
 .tm-v059-semantic-layer{z-index:12!important}
 .tm-primitive-properties input[type=range]{touch-action:none}
 .tm-primitive-properties .tm-param-range:active{cursor:ew-resize}
+
+/* Rotation band: outer = free, middle = 1°, inner = 45°. */
+.tm-rotation-ring{
+  z-index:18!important;
+  width:330px!important;
+  height:330px!important;
+  filter:drop-shadow(0 3px 8px rgb(20 43 57 / 10%));
+}
+.tm-rotation-ring::before{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle,
+      rgb(245 161 45 / 17%) 0 71px,
+      rgb(75 178 105 / 13%) 72px 124px,
+      rgb(26 151 211 / 10%) 125px 160px,
+      transparent 161px);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255 / 72%);
+}
+.tm-ring{box-shadow:0 0 0 1px rgb(255 255 255 / 72%)!important}
+.tm-ring-outer{border-color:rgb(22 145 205 / 85%)!important}
+.tm-ring-mid{border-color:rgb(54 166 89 / 88%)!important;background:transparent!important}
+.tm-ring-inner{border-color:rgb(228 145 31 / 92%)!important;background:transparent!important}
+.tm-rotation-ring[data-zone="outer"] .tm-ring-outer{border-width:2px}
+.tm-rotation-ring[data-zone="mid"] .tm-ring-mid{border-width:2px}
+.tm-rotation-ring[data-zone="inner"] .tm-ring-inner{border-width:2px}
+.tm-angle-input{z-index:2}
+
+.tm-transform-quick-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:5px;
+  margin:7px 0 4px;
+  padding-top:6px;
+  border-top:1px solid #edf1f3;
+}
+.tm-transform-quick-button{
+  width:29px;
+  height:27px;
+  display:grid;
+  place-items:center;
+  padding:5px!important;
+  border:1px solid #d6e0e6!important;
+  border-radius:5px!important;
+  background:#fff!important;
+  color:#516b7b!important;
+}
+.tm-transform-quick-button:hover{
+  background:#eaf6fb!important;
+  border-color:#9ecfe4!important;
+  color:#087eae!important;
+}
+.tm-transform-quick-button svg{width:13px;height:13px;display:block}
