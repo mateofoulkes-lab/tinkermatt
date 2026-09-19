@@ -1,0 +1,54 @@
+/* v0.6.7 — global move/rotate widgets + reliable body-level rotation guide */
+
+/* Retire every historical rotation guide. v0.6.7 owns the visible guide. */
+.tm-rotation-ring,
+.tm-rotation-guide-v066{display:none!important}
+
+/* Move dimension boxes farther away from the selected solid so they stop
+   covering the 3D rotation arrows. */
+.tm-measure-x{margin-top:40px!important}
+.tm-measure-y{margin-left:50px!important}
+.tm-measure-z{margin-top:-42px!important}
+
+.tm-rotation-guide-v067{
+  position:fixed;
+  z-index:100000;
+  width:360px;
+  height:360px;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  filter:drop-shadow(0 5px 14px rgb(20 40 52 / 22%));
+}
+.tm-rotation-guide-v067.hidden{display:none!important}
+.tm-rotation-guide-v067 svg{width:100%;height:100%;display:block;overflow:visible}
+.tm-rotation-guide-v067 .tm-v067-band{fill:none;transition:stroke-opacity .08s ease,stroke-width .08s ease}
+.tm-rotation-guide-v067 .tm-v067-outer{stroke:#1598d3;stroke-opacity:.24;stroke-width:38}
+.tm-rotation-guide-v067 .tm-v067-mid{stroke:#3ba75f;stroke-opacity:.25;stroke-width:52}
+.tm-rotation-guide-v067 .tm-v067-inner{stroke:#e39427;stroke-opacity:.29;stroke-width:48}
+.tm-rotation-guide-v067 .tm-v067-boundary{fill:none;stroke-width:1.7;stroke-opacity:.8}
+.tm-rotation-guide-v067 .outer-a,.tm-rotation-guide-v067 .outer-b{stroke:#0786bd}
+.tm-rotation-guide-v067 .mid-a,.tm-rotation-guide-v067 .mid-b{stroke:#278a49}
+.tm-rotation-guide-v067 .inner-a,.tm-rotation-guide-v067 .inner-b{stroke:#bd6f0c}
+.tm-rotation-guide-v067 .tm-v067-degree-tick{stroke:#1f6f3d;stroke-opacity:.20;stroke-width:.75}
+.tm-rotation-guide-v067 .tm-v067-degree-tick.major{stroke-opacity:.48;stroke-width:1.15}
+.tm-rotation-guide-v067 .tm-v067-45-tick{stroke:#9d5a08;stroke-opacity:.62;stroke-width:1.5}
+.tm-rotation-guide-v067[data-zone="outer"] .tm-v067-outer{stroke-opacity:.40;stroke-width:41}
+.tm-rotation-guide-v067[data-zone="mid"] .tm-v067-mid{stroke-opacity:.43;stroke-width:55}
+.tm-rotation-guide-v067[data-zone="inner"] .tm-v067-inner{stroke-opacity:.49;stroke-width:51}
+.tm-rotation-guide-v067 .tm-v067-angle{
+  position:absolute;
+  left:50%;
+  bottom:-5px;
+  transform:translateX(-50%);
+  min-width:118px;
+  padding:6px 10px;
+  border:1px solid rgb(94 125 142 / 66%);
+  border-radius:7px;
+  background:rgb(255 255 255 / 82%);
+  box-shadow:0 3px 11px rgb(22 44 57 / 18%);
+  backdrop-filter:blur(5px);
+  color:#304d5e;
+  text-align:center;
+  font:800 10px/1.2 system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
