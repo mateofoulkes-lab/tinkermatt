@@ -38,10 +38,11 @@ import "./v0611";
 import "./v0612";
 import "./v078";
 import "./v079";
+import "./v080";
 
 const version = document.querySelector<HTMLElement>(".version");
 const applyVersion = () => {
-  if (version) version.textContent = "v0.7.9";
+  if (version) version.textContent = "v0.8.0";
 };
 applyVersion();
 // Historical cosmetic layers may still write their own labels while booting.
@@ -50,7 +51,7 @@ queueMicrotask(applyVersion);
 requestAnimationFrame(applyVersion);
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.7.9 listo.";
+if (status) status.textContent = "TinkerMatt v0.8.0 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
