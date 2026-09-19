@@ -1,12 +1,14 @@
-// v0.6.4 pre-bootstrap hook.
+// v0.6.4+ pre-bootstrap hook.
 //
 // v0.4 owns the original capture-phase G/R/S keyboard handler. We keep that
-// compatibility layer intact, but wrap its keydown registration so the current
-// release can replace only S (scale) with the newer global/local semantics.
+// compatibility layer intact, but wrap its keydown registration so current
+// releases can replace individual transform behaviors without duplicating the
+// legacy listener.
 
 declare global {
   interface Window {
     __tmV064ScaleKeydownOverride?: (event: KeyboardEvent) => boolean;
+    __tmV067TransformKeydownOverride?: (event: KeyboardEvent) => boolean;
   }
 }
 
@@ -24,6 +26,7 @@ let intercepted = false;
     const legacy = listener as EventListener;
     const wrapped: EventListener = (rawEvent) => {
       const event = rawEvent as KeyboardEvent;
+      if (window.__tmV067TransformKeydownOverride?.(event)) return;
       if (window.__tmV064ScaleKeydownOverride?.(event)) return;
       legacy.call(window, rawEvent);
     };
