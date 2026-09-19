@@ -1,0 +1,20 @@
+/* v0.6.10 — render surface preference */
+.tm-surface-shading-option{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  padding:9px 10px;
+  border:1px solid #e1e8ec;
+  border-radius:6px;
+  background:#f8fafb;
+  color:#40596a;
+  font-size:10px;
+  cursor:pointer;
+  user-select:none;
+}
+.tm-surface-shading-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tm-surface-shading-copy b{font-size:10px;color:#365062}
+.tm-surface-shading-copy small{font-size:8px;color:#8797a1;line-height:1.25}
+.tm-surface-shading-option input{width:16px;height:16px;flex:0 0 16px;accent-color:#1598d3}
