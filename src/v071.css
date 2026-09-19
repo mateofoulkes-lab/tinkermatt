@@ -1,0 +1,68 @@
+/* v0.7.1 — Blender-inspired icon pass. Primitives/library intentionally untouched. */
+.tm-blender-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex: 0 0 auto;
+  overflow: visible;
+  color: currentColor;
+}
+
+.icon-button .tm-blender-icon,
+.tm-project-button .tm-blender-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.tm-project-button.tm-clear-icon-only {
+  width: 34px !important;
+  min-width: 34px !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+/* Logo → Object/Edit is deliberately the first pair in the toolbar. */
+.tm-mode-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.tm-mode-switch .tm-blender-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.tm-edit-toolbar .tm-edit-icon .tm-blender-icon {
+  width: 18px;
+  height: 18px;
+}
+.tm-edit-toolbar .tm-edit-icon > .fa-icon,
+.tm-edit-toolbar .tm-edit-icon > svg:not(.tm-blender-icon) {
+  width: 16px;
+  height: 16px;
+}
+
+/* Autosave belongs to the information bar, not the project controls. */
+.status-right .tm-autosave-badge {
+  margin-left: 0;
+  color: #667b88;
+  font-size: 9px;
+  opacity: 1;
+}
+.status-right .tm-autosave-badge.saved::before {
+  background: #39a85b;
+  box-shadow: 0 0 0 1px rgb(57 168 91 / 12%);
+}
+
+/* File-export's FontAwesome glyph has a larger visual footprint than import. */
+#export-stl .fa-icon {
+  transform: scale(.84);
+  transform-origin: center;
+}
+
+/* The old object-mode controls are now represented elsewhere. */
+#hole,
+.tm-bevel-tool {
+  display: none !important;
+}
