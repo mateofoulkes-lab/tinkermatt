@@ -1,0 +1,127 @@
+/* v0.6.3 — world dimensions, visible rotation guides, alignment preview, primitive drag */
+
+/* Dimension labels should float over geometry without becoming opaque blocks. */
+.tm-measure,
+.tm-angle-input{
+  background:rgb(255 255 255 / 72%)!important;
+  border-color:rgb(133 158 173 / 58%)!important;
+  box-shadow:0 2px 8px rgb(24 52 68 / 12%)!important;
+  backdrop-filter:blur(4px);
+}
+
+/* Make the three rotation zones visibly distinct while staying translucent. */
+.tm-rotation-ring{
+  z-index:35!important;
+  width:340px!important;
+  height:340px!important;
+  filter:drop-shadow(0 4px 12px rgb(20 43 57 / 14%));
+}
+.tm-rotation-ring::before{
+  content:"";
+  position:absolute;
+  inset:4px;
+  border-radius:50%;
+  background:
+    radial-gradient(circle,
+      rgb(238 157 42 / 18%) 0 70px,
+      rgb(238 157 42 / 26%) 70px 73px,
+      rgb(68 174 103 / 12%) 74px 123px,
+      rgb(68 174 103 / 22%) 123px 127px,
+      rgb(32 151 211 / 9%) 128px 162px,
+      rgb(32 151 211 / 24%) 162px 166px,
+      transparent 167px);
+  box-shadow:inset 0 0 0 1px rgb(255 255 255 / 62%);
+  pointer-events:none;
+}
+.tm-rotation-ring .tm-ring{
+  border-style:solid!important;
+  box-shadow:none!important;
+  pointer-events:none;
+}
+.tm-rotation-ring .tm-ring-outer{
+  width:330px!important;
+  height:330px!important;
+  border:2px solid rgb(24 145 202 / 62%)!important;
+  background:transparent!important;
+}
+.tm-rotation-ring .tm-ring-mid{
+  width:254px!important;
+  height:254px!important;
+  border:2px solid rgb(59 162 91 / 68%)!important;
+  background:
+    repeating-conic-gradient(from 0deg,
+      rgb(45 137 72 / 28%) 0deg .7deg,
+      transparent .7deg 5deg)!important;
+  -webkit-mask:radial-gradient(circle,transparent 0 119px,#000 120px 126px,transparent 127px);
+  mask:radial-gradient(circle,transparent 0 119px,#000 120px 126px,transparent 127px);
+}
+.tm-rotation-ring .tm-ring-inner{
+  width:148px!important;
+  height:148px!important;
+  border:2px solid rgb(218 135 27 / 74%)!important;
+  background:
+    repeating-conic-gradient(from 0deg,
+      rgb(188 108 13 / 38%) 0deg 1.4deg,
+      transparent 1.4deg 45deg)!important;
+  -webkit-mask:radial-gradient(circle,transparent 0 66px,#000 67px 73px,transparent 74px);
+  mask:radial-gradient(circle,transparent 0 66px,#000 67px 73px,transparent 74px);
+}
+.tm-rotation-ring[data-zone="outer"] .tm-ring-outer{border-width:4px!important}
+.tm-rotation-ring[data-zone="mid"] .tm-ring-mid{border-width:4px!important}
+.tm-rotation-ring[data-zone="inner"] .tm-ring-inner{border-width:4px!important}
+
+/* Old permanent shortcut hint is replaced by this contextual multi-select box. */
+.tm-align-box{
+  position:absolute;
+  z-index:25;
+  left:12px;
+  bottom:12px;
+  width:154px;
+  padding:9px;
+  border:1px solid rgb(151 173 185 / 62%);
+  border-radius:8px;
+  background:rgb(255 255 255 / 80%);
+  box-shadow:0 5px 18px rgb(27 55 70 / 14%);
+  backdrop-filter:blur(6px);
+  color:#3e5968;
+}
+.tm-align-box.hidden{display:none}
+.tm-align-title{
+  margin-bottom:7px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.tm-align-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tm-align-buttons button{
+  height:30px;
+  border:1px solid #c8d6dd;
+  border-radius:5px;
+  background:rgb(255 255 255 / 78%);
+  color:#466170;
+  font-weight:800;
+  cursor:pointer;
+}
+.tm-align-buttons button:hover,
+.tm-align-buttons button:focus{
+  outline:none;
+  background:#e4f5fb;
+  border-color:#74bfdd;
+  color:#067cae;
+}
+
+/* Give visual feedback that a primitive is currently being carried in. */
+.viewport.tm-primitive-dragging::after{
+  content:"Soltá para colocar";
+  position:absolute;
+  z-index:24;
+  left:50%;
+  top:14px;
+  transform:translateX(-50%);
+  padding:6px 10px;
+  border-radius:14px;
+  background:rgb(31 57 71 / 78%);
+  color:#fff;
+  font-size:10px;
+  pointer-events:none;
+}
