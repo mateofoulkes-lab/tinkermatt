@@ -151,7 +151,7 @@ function commonPrimitiveArgs() {
 function buildMcp(session: string) {
   const server = new McpServer({
     name: "TinkerMatt",
-    version: "0.2.1",
+    version: "0.3.0",
     websiteUrl: "https://mateofoulkes-lab.github.io/tinkermatt/",
   });
 
@@ -276,6 +276,38 @@ function buildMcp(session: string) {
   registerPrimitive("create_box", "Box", "createBox");
   registerPrimitive("create_cylinder", "Cylinder", "createCylinder");
   registerPrimitive("create_sphere", "Sphere", "createSphere");
+
+  registerTool(
+    "create_text",
+    {
+      title: "Create extruded text",
+      description: "Create native extruded text in TinkerMatt as one semantic text object. Height and depth are millimetres; position is millimetres; rotation is degrees. Set mode to hole when the text should engrave/subtract from a solid during a boolean union.",
+      inputSchema: z.object({
+        text: z.string().min(1).describe("Text string to extrude"),
+        name: z.string().min(1).optional().describe("Optional object name"),
+        height: z.number().positive().optional().describe("Character height in millimetres; defaults to 12"),
+        depth: z.number().positive().optional().describe("Extrusion depth in millimetres; defaults to 2"),
+        mode: z.enum(["solid", "hole"]).optional().describe("Use hole for engraved/cut text"),
+        posX: z.number().optional(),
+        posY: z.number().optional(),
+        posZ: z.number().optional(),
+        rotX: z.number().optional().describe("Rotation around X in degrees"),
+        rotY: z.number().optional().describe("Rotation around Y in degrees"),
+        rotZ: z.number().optional().describe("Rotation around Z in degrees"),
+      }),
+      securitySchemes: WRITE_SECURITY,
+      annotations: write,
+    },
+    async (args) => toolResult(await callEditor(session, "createText", {
+      text: args.text,
+      name: args.name,
+      height: args.height,
+      depth: args.depth,
+      mode: args.mode,
+      position: { x: args.posX, y: args.posY, z: args.posZ },
+      rotationDegrees: { x: args.rotX, y: args.rotY, z: args.rotZ },
+    })),
+  );
 
   registerTool(
     "select_object",
@@ -581,14 +613,14 @@ const httpServer = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
   if (url.pathname === "/health") {
-    sendJson(res, 200, { ok: true, service: "TinkerMatt MCP", version: "0.2.1", editors: sessions.size, oauth: true });
+    sendJson(res, 200, { ok: true, service: "TinkerMatt MCP", version: "0.3.0", editors: sessions.size, oauth: true });
     return;
   }
 
   if (url.pathname === "/") {
     sendJson(res, 200, {
       name: "TinkerMatt MCP",
-      version: "0.2.1",
+      version: "0.3.0",
       oauth: true,
       mcp: "/mcp?session=<secret-session-key>",
       editorWebSocket: "/editor?session=<secret-session-key>",
@@ -774,7 +806,7 @@ websocketServer.on("connection", (socket: WebSocket, _req, sessionArg?: unknown)
       if (message?.type === "hello") {
         editorSession.appVersion = typeof message.appVersion === "string" ? message.appVersion : undefined;
         editorSession.projectName = typeof message.projectName === "string" ? message.projectName : undefined;
-        socket.send(JSON.stringify({ type: "hello", ok: true, serverVersion: "0.2.1" }));
+        socket.send(JSON.stringify({ type: "hello", ok: true, serverVersion: "0.3.0" }));
         return;
       }
 
@@ -806,7 +838,7 @@ websocketServer.on("connection", (socket: WebSocket, _req, sessionArg?: unknown)
 });
 
 httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log(`TinkerMatt MCP v0.2.1 listening on :${PORT}`);
+  console.log(`TinkerMatt MCP v0.3.0 listening on :${PORT}`);
 });
 
 process.on("SIGTERM", async () => {
