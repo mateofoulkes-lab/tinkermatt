@@ -8,13 +8,30 @@ function tinkermattV04Bridge(): Plugin {
       const normalized = id.replace(/\\/g, "/");
       if (!normalized.endsWith("/src/main.ts")) return null;
       return {
-        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./v04\")\n  .then(() => import(\"./v041\"))\n  .then(() => import(\"./v042\"))\n  .then(() => import(\"./v043\"))\n  .then(() => import(\"./v044\"))\n  .then(() => import(\"./v050\"))\n  .then(() => import(\"./v051\"))\n  .then(() => import(\"./v052\"))\n  .then(() => import(\"./v053\"))\n  .then(() => import(\"./v054\"))\n  .then(() => import(\"./v055\"))\n  .then(() => import(\"./v056\"))\n  .then(() => import(\"./v057\"))\n  .then(() => import(\"./v058\"))\n  .then(() => import(\"./v059\"))\n  .then(() => import(\"./v060\"))\n  .then(() => import(\"./v061\"));\n`,
+        code: `${code}\nObject.assign(window, { __tinkerEditor: editor });\nimport(\"./latest\").catch((error) => {\n  console.error(\"TinkerMatt bootstrap failed\", error);\n  document.documentElement.classList.remove(\"tm-booting\");\n  document.getElementById(\"tm-atomic-boot-style\")?.remove();\n});\n`,
         map: null,
       };
     },
     transformIndexHtml(html) {
-      if (html.includes("manifest.webmanifest")) return html;
-      return html.replace("</head>", '    <link rel="manifest" href="./manifest.webmanifest" />\n  </head>');
+      const manifest = html.includes("manifest.webmanifest") ? "" : '    <link rel="manifest" href="./manifest.webmanifest" />\n';
+      const boot = html.includes("tm-atomic-boot-style") ? "" : `    <style id="tm-atomic-boot-style">
+      html.tm-booting body { opacity: 0; }
+      html.tm-booting::after {
+        content: "TinkerMatt";
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        background: #f7f9fb;
+        color: #345d75;
+        font: 700 15px/1.2 system-ui, sans-serif;
+        letter-spacing: .02em;
+      }
+    </style>
+    <script>document.documentElement.classList.add("tm-booting");</script>
+`;
+      return html.replace("</head>", `${manifest}${boot}  </head>`);
     },
   };
 }
