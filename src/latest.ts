@@ -4,6 +4,7 @@
 // are imported statically here so Vite can fetch/bundle them as one dependency
 // graph and the browser does not visibly "walk" through every old UI revision.
 // window.__tinkerEditor is assigned by the Vite bridge before this module loads.
+import "./v064-pre";
 import "./v04";
 import "./v041";
 import "./v042";
@@ -22,12 +23,13 @@ import "./v059";
 import "./v060";
 import "./v061";
 import "./v063";
+import "./v064";
 
 const version = document.querySelector<HTMLElement>(".version");
-if (version) version.textContent = "v0.6.3";
+if (version) version.textContent = "v0.6.4";
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.6.3 listo.";
+if (status) status.textContent = "TinkerMatt v0.6.4 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
