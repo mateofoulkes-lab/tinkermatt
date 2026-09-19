@@ -1,0 +1,63 @@
+/* v0.7.3 — make Edit Mode layout explicit and keep the floating panel out of the grid. */
+.tm-edit-mode .workspace {
+  grid-template-columns: minmax(0, 1fr) 238px !important;
+}
+
+.tm-edit-mode .library-panel {
+  display: none !important;
+}
+
+.tm-edit-mode #viewport {
+  grid-column: 1 / 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+.tm-edit-mode .outliner-panel {
+  grid-column: 2 / 3 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  width: auto !important;
+}
+
+/* The Edit panel now sits alongside #inspector, not inside .workspace. */
+.tm-edit-side-panel {
+  display: none;
+}
+
+.tm-edit-mode .tm-edit-side-panel {
+  display: block;
+  position: absolute;
+  z-index: 20;
+  top: 76px;
+  right: 248px;
+  width: 256px;
+  max-height: calc(100% - 114px);
+  overflow: auto;
+  background: rgb(255 255 255 / 98%);
+  border: 1px solid #d9e2e7;
+  border-radius: 6px;
+  box-shadow: 0 7px 22px rgb(25 48 66 / 14%);
+  color: #40596a;
+}
+
+@media (max-width: 1200px) {
+  .tm-edit-mode .workspace {
+    grid-template-columns: minmax(0, 1fr) 210px !important;
+  }
+  .tm-edit-mode .tm-edit-side-panel {
+    right: 220px;
+  }
+}
+
+@media (max-width: 900px) {
+  .tm-edit-mode .workspace {
+    grid-template-columns: minmax(0, 1fr) 175px !important;
+  }
+  .tm-edit-mode .tm-edit-side-panel {
+    right: 185px;
+    width: 236px;
+    top: 68px;
+  }
+}
