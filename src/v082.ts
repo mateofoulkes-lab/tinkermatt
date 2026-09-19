@@ -18,6 +18,37 @@ function markDividerAfter(element: Element | null, className: string) {
   if (next?.classList.contains("toolbar-divider")) next.classList.add(className);
 }
 
+function stampProjectButtonRoles(projectControls: HTMLElement) {
+  if (projectControls.dataset.tmRolesStamped === "1") return;
+
+  // v0.5.5 creates these nodes in the stable order:
+  // projectName, OPEN, SAVE, CLEAR, fileInput.
+  // Bind our layout roles to those exact original nodes once, before moving any.
+  const clear = projectControls.querySelector<HTMLButtonElement>(".tm-project-button.tm-clear");
+  const regular = [...projectControls.querySelectorAll<HTMLButtonElement>(".tm-project-button:not(.tm-clear)")];
+  const open = regular[0] ?? null;
+  const save = regular[1] ?? null;
+
+  clear?.setAttribute("data-tm-project-role", "new");
+  open?.setAttribute("data-tm-project-role", "open");
+  save?.setAttribute("data-tm-project-role", "save");
+
+  if (clear) {
+    clear.title = "Nuevo / limpiar proyecto";
+    clear.setAttribute("aria-label", "Nuevo / limpiar proyecto");
+  }
+  if (open) {
+    open.title = "Abrir proyecto .tinkermatt";
+    open.setAttribute("aria-label", "Abrir proyecto .tinkermatt");
+  }
+  if (save) {
+    save.title = "Guardar proyecto .tinkermatt";
+    save.setAttribute("aria-label", "Guardar proyecto .tinkermatt");
+  }
+
+  projectControls.dataset.tmRolesStamped = "1";
+}
+
 function arrangeToolbar() {
   if (!toolbar || !viewport) return;
   toolbar.classList.add("tm-toolbar-v082");
@@ -31,26 +62,22 @@ function arrangeToolbar() {
   const spacer = toolbar.querySelector<HTMLElement>(":scope > .toolbar-spacer");
   const snapControls = toolbar.querySelector<HTMLElement>(":scope > .snap-controls");
 
-  // v0.5.5 project controls already own all real listeners. Reorder those same
-  // nodes rather than making cosmetic clones.
   if (projectControls) {
     projectControls.classList.remove("tm-object-toolbar-node");
-    projectControls.classList.add("tm-v082-project-controls");
+    projectControls.classList.add("tm-v082-project-controls", "tm-v082-file-cluster");
+    stampProjectButtonRoles(projectControls);
 
     const name = projectControls.querySelector<HTMLElement>(".tm-project-name");
-    const buttons = [...projectControls.querySelectorAll<HTMLButtonElement>(".tm-project-button")];
-    const fresh = buttons.find((button) => button.classList.contains("tm-clear") || /clear|borrar|nuevo/i.test(button.title));
-    const open = buttons.find((button) => /abrir|open/i.test(button.title));
-    const save = buttons.find((button) => /guardar|save/i.test(button.title));
+    const fresh = projectControls.querySelector<HTMLButtonElement>('[data-tm-project-role="new"]');
+    const open = projectControls.querySelector<HTMLButtonElement>('[data-tm-project-role="open"]');
+    const save = projectControls.querySelector<HTMLButtonElement>('[data-tm-project-role="save"]');
     const fileInput = projectControls.querySelector<HTMLInputElement>('input[type="file"]');
     const autosave = projectControls.querySelector<HTMLElement>(".tm-autosave-badge");
 
+    // Exact requested order. These are the ORIGINAL nodes, so their original
+    // click listeners remain attached to the correct action.
     if (name) projectControls.append(name);
-    if (fresh) {
-      fresh.title = "Nuevo proyecto";
-      fresh.setAttribute("aria-label", "Nuevo proyecto");
-      projectControls.append(fresh);
-    }
+    if (fresh) projectControls.append(fresh);
     if (open) projectControls.append(open);
     if (save) projectControls.append(save);
     if (fileInput) projectControls.append(fileInput);
@@ -61,34 +88,28 @@ function arrangeToolbar() {
 
   legacyDesignName?.classList.add("tm-v082-hidden");
 
-  // The in-scene Tinker controls + keyboard shortcuts already own transforms;
-  // the four old top-bar transform buttons are redundant in the cleaned UI.
+  // The in-scene Tinker controls + keyboard shortcuts own transforms; the old
+  // top-bar Select/Move/Rotate/Scale group is redundant in this layout.
   const transformGroup = toolbar.querySelector<HTMLElement>("#tool-select")?.closest<HTMLElement>(".tool-group") ?? null;
   if (transformGroup) {
     transformGroup.classList.add("tm-v082-hidden");
     markDividerAfter(transformGroup, "tm-v082-hidden");
   }
 
-  // Put Object/Edit near the centre, immediately before the flexible spacer.
-  // Edit-specific component controls continue to live directly beside it.
   const modeAnchor = spacer ?? macroControls;
   if (modeSwitch && modeAnchor) toolbar.insertBefore(modeSwitch, modeAnchor);
   if (editToolbar && modeAnchor) toolbar.insertBefore(editToolbar, modeAnchor);
 
-  // Snap is a workspace setting, not a top-level command. Move the actual
-  // controls (same inputs/listeners) beside the workplane badge.
   if (snapControls) {
     snapControls.classList.add("tm-v082-snap-floating");
     viewport.append(snapControls);
   }
 
-  // Compact macro controls: behavior is unchanged; CSS hides only their labels.
   const record = toolbar.querySelector<HTMLButtonElement>("#record");
   const repeat = toolbar.querySelector<HTMLButtonElement>("#repeat");
   if (record) record.title = "Grabar / detener acciones";
   if (repeat) repeat.title = "Repetir acciones";
 
-  // Remove separators left orphaned by controls that no longer occupy the bar.
   for (const divider of toolbar.querySelectorAll<HTMLElement>(":scope > .toolbar-divider")) {
     const previous = divider.previousElementSibling as HTMLElement | null;
     const next = divider.nextElementSibling as HTMLElement | null;
@@ -96,14 +117,9 @@ function arrangeToolbar() {
     const nextGone = !next || next.classList.contains("tm-v082-hidden");
     if (previousGone || nextGone) divider.classList.add("tm-v082-hidden");
   }
-
-  projectControls?.classList.add("tm-v082-file-cluster");
 }
 
 arrangeToolbar();
-
-// Historical layers can touch toolbar state from queued microtasks. Re-assert the
-// final DOM order once after they settle; moving a node preserves all listeners.
 queueMicrotask(arrangeToolbar);
 requestAnimationFrame(() => {
   arrangeToolbar();
