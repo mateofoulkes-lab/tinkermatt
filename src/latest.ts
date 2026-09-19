@@ -35,11 +35,11 @@ import "./v069";
 import "./v0610";
 import "./v0611";
 import "./v0612";
-import "./v074";
+import "./v076";
 
 const version = document.querySelector<HTMLElement>(".version");
 const applyVersion = () => {
-  if (version) version.textContent = "v0.7.5";
+  if (version) version.textContent = "v0.7.6";
 };
 applyVersion();
 // v0.7.1 still has a historical cosmetic microtask that writes its old label.
@@ -48,7 +48,7 @@ queueMicrotask(applyVersion);
 requestAnimationFrame(applyVersion);
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.7.5 listo.";
+if (status) status.textContent = "TinkerMatt v0.7.6 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
