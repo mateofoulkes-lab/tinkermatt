@@ -18,6 +18,11 @@
   gap: 5px;
   flex: 0 0 auto;
 }
+.tm-toolbar-v082 .tm-v082-file-cluster {
+  padding-right: 9px;
+  margin-right: 1px;
+  border-right: 1px solid #e0e6ea;
+}
 .tm-toolbar-v082 .tm-project-name {
   width: 176px;
   max-width: 19vw;
