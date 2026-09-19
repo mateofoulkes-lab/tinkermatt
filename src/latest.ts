@@ -6,6 +6,7 @@
 // window.__tinkerEditor is assigned by the Vite bridge before this module loads.
 import "./v064-pre";
 import "./v04";
+import "./v068-pre";
 import "./v041";
 import "./v042";
 import "./v043";
@@ -29,12 +30,13 @@ import "./v064";
 import "./v065";
 import "./v066";
 import "./v067";
+import "./v068";
 
 const version = document.querySelector<HTMLElement>(".version");
-if (version) version.textContent = "v0.6.7";
+if (version) version.textContent = "v0.6.8";
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.6.7 listo.";
+if (status) status.textContent = "TinkerMatt v0.6.8 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
