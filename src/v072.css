@@ -1,0 +1,71 @@
+/* v0.7.2 — Edit Mode uses the same right-side properties language as Object Mode. */
+.tm-edit-mode .workspace {
+  grid-template-columns: minmax(0, 1fr) 238px;
+}
+
+.tm-edit-mode .library-panel {
+  display: none !important;
+}
+
+.tm-edit-side-panel {
+  display: none;
+}
+
+.tm-edit-mode .tm-edit-side-panel {
+  display: block;
+  position: absolute;
+  z-index: 20;
+  top: 12px;
+  right: 248px;
+  width: 256px;
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  background: rgb(255 255 255 / 98%);
+  border: 1px solid #d9e2e7;
+  border-radius: 6px;
+  box-shadow: 0 7px 22px rgb(25 48 66 / 14%);
+  color: #40596a;
+}
+
+.tm-edit-side-panel > .panel-heading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-height: 36px;
+  padding: 0 9px;
+  border-radius: 6px 6px 0 0;
+}
+
+.tm-edit-target {
+  padding: 9px;
+}
+
+.tm-edit-section,
+.tm-edit-bevel-box {
+  padding: 9px;
+}
+
+/* Keep the panel compact like the normal object inspector. */
+.tm-edit-side-panel .tm-edit-section-title {
+  margin: 1px 0 8px;
+}
+
+@media (max-width: 1200px) {
+  .tm-edit-mode .workspace {
+    grid-template-columns: minmax(0, 1fr) 210px;
+  }
+  .tm-edit-mode .tm-edit-side-panel {
+    right: 220px;
+  }
+}
+
+@media (max-width: 900px) {
+  .tm-edit-mode .workspace {
+    grid-template-columns: minmax(0, 1fr) 175px;
+  }
+  .tm-edit-mode .tm-edit-side-panel {
+    right: 185px;
+    width: 236px;
+    top: 10px;
+  }
+}
