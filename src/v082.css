@@ -1,0 +1,93 @@
+.tm-toolbar-v082 {
+  gap: 7px;
+}
+
+/* The editable project-name input is the real project title.  The old static
+   placeholder is kept in the DOM for compatibility, but no longer consumes
+   toolbar space. */
+.tm-toolbar-v082 > .design-name,
+.tm-toolbar-v082 .tm-v082-hidden {
+  display: none !important;
+}
+
+/* Project/file cluster: title first, then Nuevo / Abrir / Guardar, matching the
+   cleaned-up reference layout. */
+.tm-toolbar-v082 .tm-project-controls {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+.tm-toolbar-v082 .tm-project-name {
+  width: 176px;
+  max-width: 19vw;
+  height: 31px;
+}
+.tm-toolbar-v082 .tm-project-button {
+  width: 33px;
+  height: 33px;
+  padding: 0;
+  flex: 0 0 33px;
+}
+.tm-toolbar-v082 .tm-project-button.tm-clear {
+  width: 33px;
+  min-width: 33px;
+  padding: 0;
+  gap: 0;
+}
+.tm-toolbar-v082 .tm-project-button.tm-clear > span {
+  display: none !important;
+}
+
+/* The object/edit switch belongs around the middle of the working commands,
+   rather than immediately after the logo. */
+.tm-toolbar-v082 .tm-mode-switch {
+  margin-left: 7px;
+  margin-right: 2px;
+}
+
+/* Grabar/Repetir stay available, but become icon controls. */
+.tm-toolbar-v082 .macro-controls {
+  gap: 3px;
+}
+.tm-toolbar-v082 .macro-controls #record,
+.tm-toolbar-v082 .macro-controls #repeat {
+  width: 31px;
+  min-width: 31px;
+  height: 31px;
+  padding: 0;
+  gap: 0;
+}
+.tm-toolbar-v082 #record .record-label,
+.tm-toolbar-v082 #repeat > span:not(.fa-icon) {
+  display: none !important;
+}
+.tm-toolbar-v082 #repeat-count {
+  width: 39px;
+}
+
+/* Snap belongs to the workspace.  It floats next to the existing workplane
+   badge at the lower-right, exactly where the reference puts it. */
+#viewport > .tm-v082-snap-floating {
+  position: absolute;
+  z-index: 26;
+  right: 118px;
+  bottom: 9px;
+  display: flex;
+  min-height: 32px;
+  padding: 3px 7px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid #dfe6eb;
+  box-shadow: 0 1px 4px rgb(25 54 73 / 10%);
+}
+
+/* In Edit mode v0.7.0 hides historical direct toolbar nodes.  Project/file
+   controls are intentionally part of the persistent shell now. */
+.tm-edit-mode .tm-toolbar-v082 > .tm-project-controls {
+  display: inline-flex !important;
+}
+
+@media (max-width: 1180px) {
+  .tm-toolbar-v082 .tm-project-name { width: 145px; }
+  #viewport > .tm-v082-snap-floating { right: 108px; }
+}
