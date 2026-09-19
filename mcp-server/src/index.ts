@@ -1,4 +1,4 @@
-import { createServer, type IncomingMessage } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { toNodeHandler } from "@modelcontextprotocol/node";
@@ -44,6 +44,16 @@ type AccessGrant = {
   expiresAt: number;
 };
 
+type SecurityScheme = { type: "oauth2"; scopes: string[] };
+
+type TinkerToolConfig = {
+  title: string;
+  description: string;
+  inputSchema: any;
+  securitySchemes: SecurityScheme[];
+  annotations?: Record<string, unknown>;
+};
+
 const PORT = Number(process.env.PORT || 8787);
 const CALL_TIMEOUT_MS = Number(process.env.EDITOR_CALL_TIMEOUT_MS || 15000);
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || "https://tinkermatt-mcp.onrender.com").replace(/\/$/, "");
@@ -53,8 +63,8 @@ const ACCESS_TOKEN_TTL_SECONDS = 24 * 60 * 60;
 const READ_SCOPE = "tinkermatt.read";
 const WRITE_SCOPE = "tinkermatt.write";
 const SUPPORTED_SCOPES = [READ_SCOPE, WRITE_SCOPE];
-const READ_SECURITY = [{ type: "oauth2" as const, scopes: [READ_SCOPE] }];
-const WRITE_SECURITY = [{ type: "oauth2" as const, scopes: [WRITE_SCOPE] }];
+const READ_SECURITY: SecurityScheme[] = [{ type: "oauth2", scopes: [READ_SCOPE] }];
+const WRITE_SECURITY: SecurityScheme[] = [{ type: "oauth2", scopes: [WRITE_SCOPE] }];
 
 const sessions = new Map<string, EditorSession>();
 const authorizationCodes = new Map<string, AuthorizationCode>();
@@ -141,17 +151,49 @@ function commonPrimitiveArgs() {
 function buildMcp(session: string) {
   const server = new McpServer({
     name: "TinkerMatt",
-    version: "0.2.0",
+    version: "0.2.1",
     websiteUrl: "https://mateofoulkes-lab.github.io/tinkermatt/",
   });
 
-  server.registerTool(
+  // @modelcontextprotocol/server 2.0 currently serializes custom auth metadata
+  // only through _meta. ChatGPT also expects securitySchemes at the Tool root.
+  // Keep our own descriptor list and replace only tools/list; tools/call stays
+  // entirely owned by McpServer, so Zod validation and registered callbacks remain.
+  const toolDescriptors: any[] = [];
+
+  function registerTool(name: string, config: TinkerToolConfig, handler: (args: any) => any) {
+    const meta = { securitySchemes: config.securitySchemes };
+    const sdkConfig = {
+      title: config.title,
+      description: config.description,
+      inputSchema: config.inputSchema,
+      annotations: config.annotations,
+      _meta: meta,
+    };
+
+    (server.registerTool as any)(name, sdkConfig, handler);
+    toolDescriptors.push({
+      name,
+      title: config.title,
+      description: config.description,
+      inputSchema: z.toJSONSchema(config.inputSchema),
+      annotations: config.annotations,
+      securitySchemes: config.securitySchemes,
+      _meta: meta,
+    });
+  }
+
+  const readOnly = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false };
+  const write = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false };
+
+  registerTool(
     "editor_status",
     {
       title: "TinkerMatt editor status",
       description: "Check whether the TinkerMatt browser editor for this MCP session is connected.",
       inputSchema: z.object({}),
       securitySchemes: READ_SECURITY,
+      annotations: readOnly,
     },
     async () => {
       const editor = sessions.get(session);
@@ -164,58 +206,63 @@ function buildMcp(session: string) {
     },
   );
 
-  server.registerTool(
+  registerTool(
     "get_project",
     {
       title: "Get project",
       description: "Read the current TinkerMatt project name, snap settings, selection, and object count.",
       inputSchema: z.object({}),
       securitySchemes: READ_SECURITY,
+      annotations: readOnly,
     },
     async () => toolResult(await callEditor(session, "getProject")),
   );
 
-  server.registerTool(
+  registerTool(
     "get_scene",
     {
       title: "Get scene",
       description: "Read the semantic scene tree with object ids, names, types, transforms, params and references.",
       inputSchema: z.object({}),
       securitySchemes: READ_SECURITY,
+      annotations: readOnly,
     },
     async () => toolResult(await callEditor(session, "getScene")),
   );
 
-  server.registerTool(
+  registerTool(
     "list_objects",
     {
       title: "List objects",
       description: "List all model objects with ids, names, dimensions, transforms, mode and references.",
       inputSchema: z.object({}),
       securitySchemes: READ_SECURITY,
+      annotations: readOnly,
     },
     async () => toolResult(await callEditor(session, "listObjects")),
   );
 
-  server.registerTool(
+  registerTool(
     "list_references",
     {
       title: "List semantic references",
       description: "List named semantic face, edge, vertex and object references in the TinkerMatt scene.",
       inputSchema: z.object({}),
       securitySchemes: READ_SECURITY,
+      annotations: readOnly,
     },
     async () => toolResult(await callEditor(session, "listReferences")),
   );
 
   const registerPrimitive = (toolName: string, title: string, method: string) => {
-    server.registerTool(
+    registerTool(
       toolName,
       {
         title,
         description: `Create a ${title.toLowerCase()} in TinkerMatt. Dimensions and positions are millimetres.`,
         inputSchema: commonPrimitiveArgs(),
         securitySchemes: WRITE_SECURITY,
+        annotations: write,
       },
       async (args) => toolResult(await callEditor(session, method, {
         name: args.name,
@@ -230,29 +277,31 @@ function buildMcp(session: string) {
   registerPrimitive("create_cylinder", "Cylinder", "createCylinder");
   registerPrimitive("create_sphere", "Sphere", "createSphere");
 
-  server.registerTool(
+  registerTool(
     "select_object",
     {
       title: "Select object",
       description: "Select a TinkerMatt object by id or exact name.",
       inputSchema: z.object({ object: z.string().min(1), additive: z.boolean().optional() }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async ({ object, additive }) => toolResult(await callEditor(session, "selectObject", [object, Boolean(additive)])),
   );
 
-  server.registerTool(
+  registerTool(
     "rename_object",
     {
       title: "Rename object",
       description: "Rename an object by id or exact current name.",
       inputSchema: z.object({ object: z.string().min(1), name: z.string().min(1) }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "renameObject", args)),
   );
 
-  server.registerTool(
+  registerTool(
     "move_object",
     {
       title: "Move object",
@@ -263,6 +312,7 @@ function buildMcp(session: string) {
         x: z.number().optional(), y: z.number().optional(), z: z.number().optional(),
       }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "moveObject", {
       object: args.object,
@@ -271,7 +321,7 @@ function buildMcp(session: string) {
     })),
   );
 
-  server.registerTool(
+  registerTool(
     "rotate_object",
     {
       title: "Rotate object",
@@ -282,6 +332,7 @@ function buildMcp(session: string) {
         x: z.number().optional(), y: z.number().optional(), z: z.number().optional(),
       }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "rotateObject", {
       object: args.object,
@@ -290,7 +341,7 @@ function buildMcp(session: string) {
     })),
   );
 
-  server.registerTool(
+  registerTool(
     "set_dimensions",
     {
       title: "Set dimensions",
@@ -302,64 +353,75 @@ function buildMcp(session: string) {
         z: z.number().positive().optional(),
       }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "setDimensions", args)),
   );
 
-  server.registerTool(
+  registerTool(
     "set_solid_mode",
     {
       title: "Set solid or hole",
       description: "Mark an object as solid or hole. Holes subtract when unioned with solids.",
       inputSchema: z.object({ object: z.string().min(1), mode: z.enum(["solid", "hole"]) }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "setSolidMode", args)),
   );
 
-  server.registerTool(
+  registerTool(
     "union_objects",
     {
       title: "Union objects",
       description: "Union selected solids; objects marked as holes are subtracted automatically.",
       inputSchema: z.object({ objects: z.array(z.string().min(1)).min(2) }),
       securitySchemes: WRITE_SECURITY,
+      annotations: { ...write, destructiveHint: true },
     },
     async (args) => toolResult(await callEditor(session, "unionObjects", args)),
   );
 
-  server.registerTool(
+  registerTool(
     "select_reference",
     {
       title: "Select semantic reference",
       description: "Highlight a named semantic reference by its reference id.",
       inputSchema: z.object({ referenceId: z.string().min(1) }),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async (args) => toolResult(await callEditor(session, "selectReference", args)),
   );
 
-  server.registerTool(
+  registerTool(
     "undo",
     {
       title: "Undo",
       description: "Undo the most recent TinkerMatt edit.",
       inputSchema: z.object({}),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async () => toolResult(await callEditor(session, "undo")),
   );
 
-  server.registerTool(
+  registerTool(
     "redo",
     {
       title: "Redo",
       description: "Redo the most recently undone TinkerMatt edit.",
       inputSchema: z.object({}),
       securitySchemes: WRITE_SECURITY,
+      annotations: write,
     },
     async () => toolResult(await callEditor(session, "redo")),
   );
+
+  // Replace only the listing response so OpenAI receives the root-level
+  // securitySchemes field required by Plugins, while preserving the normal
+  // McpServer tool-call implementation.
+  server.server.setRequestHandler("tools/list", async () => ({ tools: toolDescriptors } as any));
 
   return server;
 }
@@ -391,7 +453,7 @@ function oauthMetadata() {
     token_endpoint_auth_methods_supported: ["none"],
     scopes_supported: SUPPORTED_SCOPES,
     client_id_metadata_document_supported: true,
-    authorization_response_iss_parameter_supported: false,
+    authorization_response_iss_parameter_supported: true,
   };
 }
 
@@ -424,9 +486,10 @@ function validChatGptRedirect(redirectUri: string) {
   }
 }
 
-function normalizeScopes(value: string | null) {
-  const requested = (value || SUPPORTED_SCOPES.join(" ")).split(/\s+/).filter(Boolean);
-  return [...new Set(requested.filter((scope) => SUPPORTED_SCOPES.includes(scope)))];
+function normalizeScopes(_value: string | null) {
+  // Development server: grant the two explicit TinkerMatt scopes together.
+  // This keeps the authorization model simple while the plugin is private.
+  return [...SUPPORTED_SCOPES];
 }
 
 function authorizeParams(params: URLSearchParams) {
@@ -446,7 +509,6 @@ function authorizeParams(params: URLSearchParams) {
     throw new Error("PKCE S256 es obligatorio");
   }
   if (resource !== RESOURCE_ID) throw new Error("resource OAuth inválido");
-  if (!scopes.length) throw new Error("No se solicitaron scopes compatibles");
 
   return { clientId, redirectUri, state, codeChallenge, resource, scopes };
 }
@@ -458,7 +520,6 @@ function oauthRedirect(redirectUri: string, values: Record<string, string>) {
 }
 
 function consentPage(params: ReturnType<typeof authorizeParams>) {
-  const scopes = params.scopes.map((scope) => `<li>${scope === READ_SCOPE ? "Leer el proyecto y la escena" : "Crear y modificar objetos"}</li>`).join("");
   const fields = [
     ["response_type", "code"],
     ["client_id", params.clientId],
@@ -474,7 +535,7 @@ function consentPage(params: ReturnType<typeof authorizeParams>) {
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Autorizar TinkerMatt</title><style>
 body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef4f7;color:#20313a;margin:0;min-height:100vh;display:grid;place-items:center}.card{width:min(480px,calc(100vw - 32px));background:white;border:1px solid #d6e1e7;border-radius:18px;box-shadow:0 16px 50px #17303d20;padding:28px;box-sizing:border-box}h1{margin:0 0 8px;font-size:24px}.sub{color:#61727c;margin:0 0 20px}.app{font-weight:700;color:#078ac2}ul{line-height:1.8;padding-left:22px}.buttons{display:flex;gap:10px;margin-top:22px}.buttons button{flex:1;border-radius:10px;padding:11px 14px;font:inherit;font-weight:650;cursor:pointer}.deny{background:#fff;border:1px solid #c9d5db;color:#485961}.allow{background:#078ac2;border:1px solid #078ac2;color:#fff}.note{font-size:12px;color:#788891;line-height:1.4;margin-top:18px}
-</style></head><body><main class="card"><h1>Autorizar TinkerMatt</h1><p class="sub"><span class="app">ChatGPT</span> solicita acceso a tu editor TinkerMatt.</p><p>Permisos solicitados:</p><ul>${scopes}</ul><form method="post" action="/oauth/authorize">${fields}<div class="buttons"><button class="deny" name="decision" value="deny">Cancelar</button><button class="allow" name="decision" value="allow">Autorizar</button></div></form><p class="note">Esta autorización es para la versión de desarrollo de TinkerMatt. La clave secreta de sesión sigue determinando qué pestaña puede controlarse.</p></main></body></html>`;
+</style></head><body><main class="card"><h1>Autorizar TinkerMatt</h1><p class="sub"><span class="app">ChatGPT</span> solicita acceso a tu editor TinkerMatt.</p><p>Permisos solicitados:</p><ul><li>Leer el proyecto y la escena</li><li>Crear y modificar objetos</li></ul><form method="post" action="/oauth/authorize">${fields}<div class="buttons"><button class="deny" name="decision" value="deny">Cancelar</button><button class="allow" name="decision" value="allow">Autorizar</button></div></form><p class="note">Esta autorización es para la versión privada de desarrollo. La clave secreta de sesión sigue determinando qué pestaña puede controlarse.</p></main></body></html>`;
 }
 
 async function readForm(req: IncomingMessage) {
@@ -494,8 +555,7 @@ async function readForm(req: IncomingMessage) {
 }
 
 function bearerToken(value: string | undefined) {
-  if (!value) return "";
-  const match = /^Bearer\s+(.+)$/i.exec(value.trim());
+  const match = value ? /^Bearer\s+(.+)$/i.exec(value.trim()) : null;
   return match?.[1] || "";
 }
 
@@ -509,10 +569,10 @@ function validAccessToken(value: string | undefined) {
 }
 
 function oauthChallenge() {
-  return `Bearer resource_metadata="${PUBLIC_BASE_URL}/.well-known/oauth-protected-resource", scope="${SUPPORTED_SCOPES.join(" ")}"`;
+  return `Bearer resource_metadata="${PUBLIC_BASE_URL}/.well-known/oauth-protected-resource", scope="${SUPPORTED_SCOPES.join(" ")}", error="invalid_token", error_description="OAuth authorization is required"`;
 }
 
-function sendJson(res: Parameters<Parameters<typeof createServer>[0]>[1], status: number, value: unknown, headers: Record<string, string> = {}) {
+function sendJson(res: ServerResponse, status: number, value: unknown, headers: Record<string, string> = {}) {
   res.writeHead(status, { "content-type": "application/json", "cache-control": "no-store", ...headers });
   res.end(json(value));
 }
@@ -521,14 +581,14 @@ const httpServer = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
   if (url.pathname === "/health") {
-    sendJson(res, 200, { ok: true, service: "TinkerMatt MCP", version: "0.2.0", editors: sessions.size, oauth: true });
+    sendJson(res, 200, { ok: true, service: "TinkerMatt MCP", version: "0.2.1", editors: sessions.size, oauth: true });
     return;
   }
 
   if (url.pathname === "/") {
     sendJson(res, 200, {
       name: "TinkerMatt MCP",
-      version: "0.2.0",
+      version: "0.2.1",
       oauth: true,
       mcp: "/mcp?session=<secret-session-key>",
       editorWebSocket: "/editor?session=<secret-session-key>",
@@ -564,10 +624,19 @@ const httpServer = createServer(async (req, res) => {
       const form = await readForm(req);
       const params = authorizeParams(form);
       if (form.get("decision") !== "allow") {
-        res.writeHead(302, { location: oauthRedirect(params.redirectUri, { error: "access_denied", error_description: "El usuario canceló la autorización.", state: params.state }), "cache-control": "no-store" });
+        res.writeHead(302, {
+          location: oauthRedirect(params.redirectUri, {
+            error: "access_denied",
+            error_description: "El usuario canceló la autorización.",
+            state: params.state,
+            iss: PUBLIC_BASE_URL,
+          }),
+          "cache-control": "no-store",
+        });
         res.end();
         return;
       }
+
       const code = randomToken();
       authorizationCodes.set(code, {
         clientId: params.clientId,
@@ -577,7 +646,10 @@ const httpServer = createServer(async (req, res) => {
         scopes: params.scopes,
         expiresAt: Date.now() + OAUTH_CODE_TTL_MS,
       });
-      res.writeHead(302, { location: oauthRedirect(params.redirectUri, { code, state: params.state }), "cache-control": "no-store" });
+      res.writeHead(302, {
+        location: oauthRedirect(params.redirectUri, { code, state: params.state, iss: PUBLIC_BASE_URL }),
+        "cache-control": "no-store",
+      });
       res.end();
     } catch (error) {
       sendJson(res, 400, { error: "invalid_request", error_description: error instanceof Error ? error.message : String(error) });
@@ -596,6 +668,7 @@ const httpServer = createServer(async (req, res) => {
       const verifier = form.get("code_verifier") || "";
       const resource = form.get("resource") || "";
       const record = authorizationCodes.get(code);
+
       if (!record || record.expiresAt <= Date.now()) throw new Error("Código de autorización inválido o vencido");
       authorizationCodes.delete(code);
       if (record.clientId !== clientId || record.redirectUri !== redirectUri || record.resource !== resource || resource !== RESOURCE_ID) {
@@ -630,11 +703,18 @@ const httpServer = createServer(async (req, res) => {
       sendJson(res, 400, { error: "invalid_session", error_description: "Falta una clave de sesión TinkerMatt válida." });
       return;
     }
+
     const grant = validAccessToken(req.headers.authorization);
     if (!grant) {
-      sendJson(res, 401, { error: "unauthorized", error_description: "OAuth requerido para usar TinkerMatt MCP." }, { "www-authenticate": oauthChallenge() });
+      sendJson(
+        res,
+        401,
+        { error: "unauthorized", error_description: "OAuth requerido para usar TinkerMatt MCP." },
+        { "www-authenticate": oauthChallenge() },
+      );
       return;
     }
+
     await nodeMcpHandler(req, res);
     return;
   }
@@ -650,18 +730,21 @@ httpServer.on("upgrade", (req, socket, head) => {
     socket.destroy();
     return;
   }
+
   const origin = String(req.headers.origin || "");
   if (origin && !allowedOrigins.has(origin)) {
     socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
     socket.destroy();
     return;
   }
+
   const session = url.searchParams.get("session");
   if (!validSession(session)) {
     socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
     socket.destroy();
     return;
   }
+
   websocketServer.handleUpgrade(req, socket, head, (ws) => {
     websocketServer.emit("connection", ws, req, session);
   });
@@ -691,9 +774,10 @@ websocketServer.on("connection", (socket: WebSocket, _req, sessionArg?: unknown)
       if (message?.type === "hello") {
         editorSession.appVersion = typeof message.appVersion === "string" ? message.appVersion : undefined;
         editorSession.projectName = typeof message.projectName === "string" ? message.projectName : undefined;
-        socket.send(JSON.stringify({ type: "hello", ok: true, serverVersion: "0.2.0" }));
+        socket.send(JSON.stringify({ type: "hello", ok: true, serverVersion: "0.2.1" }));
         return;
       }
+
       if (message?.type === "response") {
         const response = message as EditorResponse;
         const pending = editorSession.pending.get(response.id);
@@ -716,12 +800,13 @@ websocketServer.on("connection", (socket: WebSocket, _req, sessionArg?: unknown)
     }
     editorSession.pending.clear();
   };
+
   socket.on("close", close);
   socket.on("error", close);
 });
 
 httpServer.listen(PORT, "0.0.0.0", () => {
-  console.log(`TinkerMatt MCP v0.2.0 listening on :${PORT}`);
+  console.log(`TinkerMatt MCP v0.2.1 listening on :${PORT}`);
 });
 
 process.on("SIGTERM", async () => {
