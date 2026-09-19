@@ -35,7 +35,7 @@ import "./v069";
 import "./v0610";
 import "./v0611";
 import "./v0612";
-import "./v071";
+import "./v071-hotfix";
 
 const version = document.querySelector<HTMLElement>(".version");
 if (version) version.textContent = "v0.7.1";
