@@ -6,6 +6,7 @@
 // window.__tinkerEditor is assigned by the Vite bridge before this module loads.
 import "./v064-pre";
 import "./v079-pre";
+import "./v081-pre";
 import "./v04";
 import "./v068-pre";
 import "./v041";
@@ -39,10 +40,11 @@ import "./v0612";
 import "./v078";
 import "./v079";
 import "./v080";
+import "./v081";
 
 const version = document.querySelector<HTMLElement>(".version");
 const applyVersion = () => {
-  if (version) version.textContent = "v0.8.0";
+  if (version) version.textContent = "v0.8.1";
 };
 applyVersion();
 // Historical cosmetic layers may still write their own labels while booting.
@@ -51,7 +53,7 @@ queueMicrotask(applyVersion);
 requestAnimationFrame(applyVersion);
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.8.0 listo.";
+if (status) status.textContent = "TinkerMatt v0.8.1 listo.";
 
 // Reveal only after every compatibility layer has finished evaluating. This
 // makes startup atomic: the first editor frame the user sees is the current UI.
