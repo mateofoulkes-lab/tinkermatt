@@ -81,20 +81,17 @@ function chamferedBox(length: number, width: number, height: number, radius: num
   const r = Math.min(radius, hx - 1e-5, hy - 1e-5, hz - 1e-5);
   if (r <= 1e-5) return new THREE.BoxGeometry(length, width, height);
 
-  // A true one-step bevel is a truncated cuboid: six octagonal original faces,
-  // twelve planar edge faces and eight triangular corner faces. ConvexGeometry
-  // builds exactly that hull from the three offset points around each corner.
+  // Bevel ALL twelve edges, not only the eight corners. At each original corner
+  // the new triangular corner is bounded by three points, each one offset along
+  // two axes. The previous implementation offset only one axis per point, which
+  // merely truncated vertices and left the original edges untouched.
   const points: THREE.Vector3[] = [];
   for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
-    points.push(new THREE.Vector3(sx * (hx - r), sy * hy, sz * hz));
-    points.push(new THREE.Vector3(sx * hx, sy * (hy - r), sz * hz));
-    points.push(new THREE.Vector3(sx * hx, sy * hy, sz * (hz - r)));
+    points.push(new THREE.Vector3(sx * (hx - r), sy * (hy - r), sz * hz));
+    points.push(new THREE.Vector3(sx * (hx - r), sy * hy, sz * (hz - r)));
+    points.push(new THREE.Vector3(sx * hx, sy * (hy - r), sz * (hz - r)));
   }
-  const geometry = new ConvexGeometry(points);
-  geometry.computeVertexNormals();
-  geometry.computeBoundingBox();
-  geometry.computeBoundingSphere();
-  return geometry;
+  return flatGeometry(new ConvexGeometry(points));
 }
 
 function boxGeometry(values: PrimitiveValues) {
@@ -106,10 +103,12 @@ function boxGeometry(values: PrimitiveValues) {
   const steps = Math.round(clamp(values.steps, 1, 20, 1));
   if (radius <= 1e-5) return new THREE.BoxGeometry(length, width, height);
   if (steps === 1) return chamferedBox(length, width, height, radius);
-  const geometry = new RoundedBoxGeometry(length, width, height, steps, radius);
-  geometry.computeBoundingBox();
-  geometry.computeBoundingSphere();
-  return geometry;
+
+  // Tinkercad-style Steps are actual visible bevel bands. RoundedBoxGeometry
+  // uses smooth interpolated normals by default, which made Steps=2 look like a
+  // polished blob instead of two geometric steps. Flat normals preserve every
+  // band while coplanar triangles remain visually continuous.
+  return flatGeometry(new RoundedBoxGeometry(length, width, height, steps, radius));
 }
 
 function cylinderGeometry(values: PrimitiveValues) {
@@ -140,7 +139,7 @@ function cylinderGeometry(values: PrimitiveValues) {
 
   let geometry: THREE.BufferGeometry = new THREE.LatheGeometry(points, sides, 0, Math.PI * 2);
   geometry.rotateX(Math.PI / 2);
-  if (bevel > 1e-5 && bevelSegments === 1) geometry = flatGeometry(geometry);
+  if (bevel > 1e-5) geometry = flatGeometry(geometry);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -263,6 +262,7 @@ function torusGeometry(values: PrimitiveValues) {
 }
 
 function washerGeometry(values: PrimitiveValues) {
+  // "Anillo" is intentionally NOT a torus: it is a short hollow cylinder / tube.
   const outerRadius = clamp(values.outerDiameter, 0.02, 10000, 24) / 2;
   const innerRadius = clamp(values.innerDiameter, 0, outerRadius * 2 - 0.02, 10) / 2;
   const height = clamp(values.height, 0.01, 10000, 4);
