@@ -19,6 +19,20 @@ function normalize(action: string) {
   return String(action ?? "").trim().toLowerCase().replace(/-/g, "_");
 }
 
+let batchDepth = 0;
+let lastRepeatableOperation: BatchOperation | null = null;
+const notRepeatable = new Set([
+  "batch", "undo", "redo", "repeat_last_action", "get_bounds", "measure",
+  "check_printability", "select_object", "select_by_name_pattern", "macro",
+  "export_object", "export_group", "export_objects",
+]);
+
+function rememberOperation(operation: BatchOperation) {
+  const action = normalize(operation.action);
+  if (!action || notRepeatable.has(action)) return;
+  lastRepeatableOperation = { action, args: structuredClone(operation.args ?? {}) };
+}
+
 async function createBoxArray(args: any) {
   const countX = Math.max(1, Math.min(100, Math.floor(Number(args.countX ?? 1))));
   const countY = Math.max(1, Math.min(100, Math.floor(Number(args.countY ?? 1))));
@@ -44,6 +58,18 @@ async function createBoxArray(args: any) {
     }
   }
   return { count: result.length, objects: result };
+}
+
+async function repeatLastActionRemote(args: any = {}) {
+  if (!lastRepeatableOperation) throw new Error("Todavía no hay una acción MCP repetible.");
+  const count = Math.max(1, Math.min(100, Math.floor(Number(args.count ?? 1))));
+  if (batchDepth > 0) {
+    const results = [];
+    for (let i = 0; i < count; i += 1) results.push(await dispatch(lastRepeatableOperation));
+    return { repeated: count, action: lastRepeatableOperation.action, results };
+  }
+  const operation = structuredClone(lastRepeatableOperation);
+  return await batchSingleUndo({ operations: Array.from({ length: count }, () => structuredClone(operation)), rollbackOnError: true });
 }
 
 async function dispatch(operation: BatchOperation) {
@@ -90,7 +116,7 @@ async function dispatch(operation: BatchOperation) {
     case "create_component": return api.createComponent?.(args);
     case "sync_component": return api.syncComponent?.(args);
     case "macro": return api.macroControl?.(args);
-    case "repeat_last_action": return api.repeatLastAction?.(args);
+    case "repeat_last_action": return repeatLastActionRemote(args);
     case "check_printability": return api.checkPrintability?.(args);
     case "split_for_printing": return api.splitForPrinting?.(args);
     case "export_object":
@@ -111,12 +137,15 @@ async function batchSingleUndo(args: any) {
   const checkpoint = editor.checkpoint.bind(editor);
   checkpoint();
   (editor as any).checkpoint = () => {};
+  batchDepth += 1;
   const results: any[] = [];
   try {
     for (let i = 0; i < operations.length; i += 1) {
       const operation = operations[i];
       try {
-        results.push({ index: i, action: operation.action, ok: true, result: await dispatch(operation) });
+        const result = await dispatch(operation);
+        results.push({ index: i, action: operation.action, ok: true, result });
+        rememberOperation(operation);
       } catch (error) {
         throw new Error(`Operación ${i + 1}/${operations.length} (${operation.action}): ${error instanceof Error ? error.message : String(error)}`);
       }
@@ -130,6 +159,7 @@ async function batchSingleUndo(args: any) {
     }
     throw error;
   } finally {
+    batchDepth = Math.max(0, batchDepth - 1);
     (editor as any).checkpoint = checkpoint;
     rawEditor.refreshSelectionHelpers?.();
     rawEditor.emit?.("changed");
@@ -138,6 +168,8 @@ async function batchSingleUndo(args: any) {
 }
 
 window.tinkerMatt.createBoxArray = createBoxArray;
+window.tinkerMatt.repeatLastAction = repeatLastActionRemote;
+window.tinkerMatt.__rememberOperation = rememberOperation;
 window.tinkerMatt.batch = batchSingleUndo;
 
-setStatus("TinkerMatt v0.8.4 · batch mixto = una sola transacción/Undo.");
+setStatus("TinkerMatt v0.8.4 · batch mixto y repetir última acción = una sola transacción/Undo.");
