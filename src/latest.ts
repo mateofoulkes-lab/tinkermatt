@@ -4,6 +4,7 @@
 // are imported statically here so Vite can fetch/bundle them as one dependency
 // graph and the browser does not visibly "walk" through every old UI revision.
 // window.__tinkerEditor is assigned by the Vite bridge before this module loads.
+import "./v084-pre";
 import "./v064-pre";
 import "./v079-pre";
 import "./v081-pre";
