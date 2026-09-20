@@ -1,6 +1,7 @@
 import "./v083";
 import "./v084-core";
 import "./v084-batch";
+import "./v084-guards";
 import "./v084-ui";
 
 const version = document.querySelector<HTMLElement>(".version");
