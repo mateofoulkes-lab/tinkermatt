@@ -87,8 +87,6 @@ editor.on("selection", refreshLockedWidgets);
 editor.on("changed", refreshLockedWidgets);
 queueMicrotask(refreshLockedWidgets);
 
-// Historical keyboard G/R modal hook. If the active object is locked, consume
-// transformation shortcuts before that compatibility layer starts a gesture.
 const previousTransformKeyHook = window.__tmV067TransformKeydownOverride;
 window.__tmV067TransformKeydownOverride = (event: KeyboardEvent) => {
   const active = editor.activeObject();
@@ -102,7 +100,6 @@ window.__tmV067TransformKeydownOverride = (event: KeyboardEvent) => {
   return previousTransformKeyHook?.(event) ?? false;
 };
 
-// Hide/disable the historical DOM scale handles for locked active objects.
 const style = document.createElement("style");
 style.textContent = `
 .tm-active-object-locked .tm-z-handle,
@@ -118,18 +115,73 @@ document.head.append(style);
 
 // -----------------------------------------------------------------------------
 // Legacy MCP methods. New v084 methods already enforce this internally, but old
-// exact tools (move_object, set_dimensions, delete_objects...) must obey lock too.
+// exact tools must obey lock too. While wrapping them, normalize their old bridge
+// argument shape into the current MCP action shape so repeat_last_action works
+// regardless of which TinkerMatt generation originally provided the tool.
 // -----------------------------------------------------------------------------
 const api = window.tinkerMatt;
-for (const name of [
+const remember = (action: string, args: any) => api.__rememberOperation?.({ action, args });
+
+function canonicalArgs(name: string, args: any) {
+  if (["createBox", "createCylinder", "createSphere"].includes(name)) return {
+    name: args?.name,
+    mode: args?.mode,
+    x: args?.size?.x, y: args?.size?.y, z: args?.size?.z,
+    posX: args?.position?.x, posY: args?.position?.y, posZ: args?.position?.z,
+  };
+  if (name === "createText") return {
+    text: args?.text, name: args?.name, height: args?.height, depth: args?.depth, mode: args?.mode,
+    posX: args?.position?.x, posY: args?.position?.y, posZ: args?.position?.z,
+    rotX: args?.rotationDegrees?.x, rotY: args?.rotationDegrees?.y, rotZ: args?.rotationDegrees?.z,
+  };
+  if (name === "moveObject") return {
+    object: args?.object,
+    dx: args?.delta?.x, dy: args?.delta?.y, dz: args?.delta?.z,
+    x: args?.position?.x, y: args?.position?.y, z: args?.position?.z,
+    allowLocked: args?.allowLocked,
+  };
+  if (name === "rotateObject") return {
+    object: args?.object,
+    dx: args?.deltaDegrees?.x, dy: args?.deltaDegrees?.y, dz: args?.deltaDegrees?.z,
+    x: args?.rotationDegrees?.x, y: args?.rotationDegrees?.y, z: args?.rotationDegrees?.z,
+    allowLocked: args?.allowLocked,
+  };
+  return structuredClone(args ?? {});
+}
+
+const actionForMethod: Record<string, string> = {
+  createBox: "create_box",
+  createCylinder: "create_cylinder",
+  createSphere: "create_sphere",
+  createText: "create_text",
+  moveObject: "move_object",
+  rotateObject: "rotate_object",
+  setDimensions: "set_dimensions",
+  setSolidMode: "set_solid_mode",
+  unionObjects: "union_objects",
+  deleteObjects: "delete_objects",
+  deleteSelectedRemote: "delete_selected",
+  duplicateObject: "duplicate_object",
+  duplicateObjects: "duplicate_objects",
+  arrayObject: "array_object",
+  groupObjects: "group_objects",
+  ungroupObjects: "ungroup_objects",
+  renameObject: "rename_object",
+};
+
+const lockSensitive = new Set([
   "moveObject", "rotateObject", "setDimensions", "setSolidMode", "unionObjects",
   "deleteObjects", "groupObjects", "ungroupObjects", "renameObject",
-] as const) {
+]);
+
+for (const name of Object.keys(actionForMethod)) {
   const original = api[name];
   if (typeof original !== "function") continue;
   api[name] = async (args: any) => {
-    ensureArgsUnlocked(args ?? {});
-    return await original(args);
+    if (lockSensitive.has(name)) ensureArgsUnlocked(args ?? {});
+    const result = await original(args);
+    remember(actionForMethod[name], canonicalArgs(name, args));
+    return result;
   };
 }
 
@@ -138,16 +190,21 @@ for (const name of [
 const clearSceneOriginal = api.clearScene;
 if (typeof clearSceneOriginal === "function") {
   api.clearScene = async (args: any = {}) => {
-    if (args.allowLocked === true) return await clearSceneOriginal(args);
-    const lockedIds: string[] = [];
-    for (const root of editor.getSceneRoots()) {
-      root.traverse((node) => {
-        const meta = getMeta(node);
-        if (meta && locked(node)) lockedIds.push(meta.id);
-      });
+    let effective = args;
+    if (args.allowLocked !== true) {
+      const lockedIds: string[] = [];
+      for (const root of editor.getSceneRoots()) {
+        root.traverse((node) => {
+          const meta = getMeta(node);
+          if (meta && locked(node)) lockedIds.push(meta.id);
+        });
+      }
+      effective = { ...args, except: [...new Set([...(args.except ?? []), ...lockedIds])] };
     }
-    return await clearSceneOriginal({ ...args, except: [...new Set([...(args.except ?? []), ...lockedIds])] });
+    const result = await clearSceneOriginal(effective);
+    remember("clear_scene", args);
+    return result;
   };
 }
 
-setStatus("TinkerMatt v0.8.4 · lock endurecido en editor + MCP legado.");
+setStatus("TinkerMatt v0.8.4 · lock endurecido + repeat compatible con MCP legado.");
