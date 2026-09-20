@@ -41,22 +41,18 @@ import "./v078";
 import "./v079";
 import "./v080";
 import "./v081";
-import "./v083";
+import "./v084";
 
 const version = document.querySelector<HTMLElement>(".version");
 const applyVersion = () => {
-  if (version) version.textContent = "v0.8.3";
+  if (version) version.textContent = "v0.8.4";
 };
 applyVersion();
-// Historical cosmetic layers may still write their own labels while booting.
-// Re-assert the current release after compatibility-layer microtasks settle.
 queueMicrotask(applyVersion);
 requestAnimationFrame(applyVersion);
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.8.3 listo.";
+if (status) status.textContent = "TinkerMatt v0.8.4 listo.";
 
-// Reveal only after every compatibility layer has finished evaluating. This
-// makes startup atomic: the first editor frame the user sees is the current UI.
 document.documentElement.classList.remove("tm-booting");
 document.getElementById("tm-atomic-boot-style")?.remove();
