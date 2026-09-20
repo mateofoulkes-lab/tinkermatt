@@ -1,12 +1,12 @@
 {
   "name": "tinkermatt-mcp-server",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index-v5.js",
-    "dev": "tsx src/index-v5.ts"
+    "start": "node dist/index-v51.js",
+    "dev": "tsx src/index-v51.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/node": "2.0.0",
