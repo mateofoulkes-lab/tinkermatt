@@ -1,4 +1,4 @@
-// v0.8.4 handshake compatibility shim.
+// v0.8.5 handshake compatibility shim.
 //
 // The original MCP browser bridge was introduced in v0.5.7 and still sends
 // appVersion: "0.5.7" from its private connectMcp() closure. Newer UI layers
@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-window.__tmAppVersion = "0.8.4";
+window.__tmAppVersion = "0.8.5";
 
 const originalSend = WebSocket.prototype.send;
 WebSocket.prototype.send = function tmVersionAwareSend(data: string | ArrayBufferLike | Blob | ArrayBufferView) {
@@ -19,7 +19,7 @@ WebSocket.prototype.send = function tmVersionAwareSend(data: string | ArrayBuffe
     try {
       const message = JSON.parse(data);
       if (message?.type === "hello" && message?.role === "editor") {
-        message.appVersion = window.__tmAppVersion ?? "0.8.4";
+        message.appVersion = window.__tmAppVersion ?? "0.8.5";
         // Keep the bridge lineage explicit for future diagnostics. Older MCP
         // servers safely ignore this extra field.
         message.bridgeVersion = "0.5.7";
