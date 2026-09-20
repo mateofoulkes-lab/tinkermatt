@@ -3,6 +3,7 @@ import "./v084-core";
 import "./v084-extra";
 import "./v084-batch";
 import "./v084-guards";
+import "./v084-lock-edit";
 import "./v084-ui";
 
 const version = document.querySelector<HTMLElement>(".version");
