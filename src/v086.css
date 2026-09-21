@@ -1,0 +1,103 @@
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="new"],
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="save"] {
+  color: #294b64 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="open"] {
+  color: #8a3340 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="new"]:hover,
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="open"]:hover,
+.tm-toolbar-v086 .tm-project-button[data-tm-project-role="save"]:hover {
+  background: #eef4f7 !important;
+  border-color: #d2dde4 !important;
+}
+
+.tm-toolbar-v086 .tm-v086-divider {
+  width: 1px;
+  height: 31px;
+  flex: 0 0 1px;
+  background: #e0e6ea;
+  margin: 0 4px;
+}
+
+.tm-toolbar-v086 .macro-controls {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.tm-toolbar-v086 .tm-mode-switch {
+  margin-left: 0;
+  margin-right: 4px;
+  flex: 0 0 auto;
+}
+
+.tm-toolbar-v086 .io-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tm-toolbar-v086 .io-controls #import-stl-top,
+.tm-toolbar-v086 .io-controls #export-stl,
+.tm-toolbar-v086 .io-controls #export-stl.text-action.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 31px;
+  height: 31px;
+  padding: 6px 9px 4px;
+  line-height: 1;
+}
+
+/* Font Awesome glyphs do not all fill their viewBox equally. Target the SVG
+   itself so Importar and Exportar have the same perceived icon size. */
+.tm-toolbar-v086 .io-controls #import-stl-top svg,
+.tm-toolbar-v086 .io-controls #export-stl svg {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px;
+  display: block;
+}
+
+.tm-toolbar-v086 .io-controls #import-stl-top .fa-icon,
+.tm-toolbar-v086 .io-controls #export-stl .fa-icon {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+/* v0.8.4 inserted Lock before Eye, but the historical grid still had only
+   three columns. Give both controls their own fixed column so Eye never wraps. */
+#outliner-tree .outliner-row {
+  grid-template-columns: 24px minmax(0, 1fr) 24px 24px !important;
+  min-height: 28px;
+}
+
+#outliner-tree .tm-v084-lock,
+#outliner-tree .eye-button {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  margin: 0;
+  padding: 4px;
+  align-self: center;
+  justify-self: center;
+}
+
+#outliner-tree .tm-v084-lock {
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  line-height: 1;
+}
+
+#outliner-tree .eye-button {
+  display: grid;
+  place-items: center;
+}
