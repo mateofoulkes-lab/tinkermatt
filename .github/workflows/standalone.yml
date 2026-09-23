@@ -1,0 +1,125 @@
+name: Build standalone TinkerMatt HTML
+
+on:
+  push:
+    branches: [standalone-html]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install app dependencies
+        run: npm install
+
+      - name: Install single-file bundler
+        run: npm install --no-save vite-plugin-singlefile@2
+
+      - name: Create standalone Vite config
+        shell: bash
+        run: |
+          cat > vite.standalone.config.ts <<'EOF'
+          import { defineConfig, mergeConfig } from "vite";
+          import baseConfig from "./vite.config";
+          import { viteSingleFile } from "vite-plugin-singlefile";
+
+          export default mergeConfig(baseConfig, defineConfig({
+            plugins: [viteSingleFile()],
+            build: {
+              cssCodeSplit: false,
+              assetsInlineLimit: 100000000,
+              modulePreload: { polyfill: false },
+            },
+          }));
+          EOF
+
+      - name: Build one-file app
+        run: npx vite build --config vite.standalone.config.ts --outDir standalone-dist
+
+      - name: Make it local-only and rename
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          src = Path("standalone-dist/index.html")
+          html = src.read_text(encoding="utf-8")
+
+          # A file:// launch cannot use a PWA manifest/service worker anyway.
+          html = re.sub(r'<link\s+[^>]*rel=["\']manifest["\'][^>]*>\s*', '', html, flags=re.I)
+
+          guard = r'''
+          <script id="tm-standalone-guard">
+          (() => {
+            window.__TINKERMATT_STANDALONE__ = true;
+            const isNetwork = (value) => {
+              try {
+                const raw = typeof value === 'string' ? value : (value && value.url) ? value.url : String(value);
+                const u = new URL(raw, location.href);
+                return u.protocol === 'http:' || u.protocol === 'https:' || u.protocol === 'ws:' || u.protocol === 'wss:';
+              } catch (_) { return false; }
+            };
+
+            if (window.fetch) {
+              const realFetch = window.fetch.bind(window);
+              window.fetch = (input, init) => isNetwork(input)
+                ? Promise.reject(new TypeError('TinkerMatt Standalone: red deshabilitada'))
+                : realFetch(input, init);
+            }
+
+            if (window.WebSocket) {
+              const NativeWebSocket = window.WebSocket;
+              const GuardedWebSocket = function(url, protocols) {
+                if (isNetwork(url)) throw new DOMException('TinkerMatt Standalone: WebSocket deshabilitado', 'SecurityError');
+                return protocols === undefined ? new NativeWebSocket(url) : new NativeWebSocket(url, protocols);
+              };
+              GuardedWebSocket.prototype = NativeWebSocket.prototype;
+              Object.setPrototypeOf(GuardedWebSocket, NativeWebSocket);
+              window.WebSocket = GuardedWebSocket;
+            }
+
+            if (window.EventSource) {
+              const NativeEventSource = window.EventSource;
+              const GuardedEventSource = function(url, init) {
+                if (isNetwork(url)) throw new DOMException('TinkerMatt Standalone: EventSource deshabilitado', 'SecurityError');
+                return new NativeEventSource(url, init);
+              };
+              GuardedEventSource.prototype = NativeEventSource.prototype;
+              Object.setPrototypeOf(GuardedEventSource, NativeEventSource);
+              window.EventSource = GuardedEventSource;
+            }
+
+            document.documentElement.dataset.tinkermattStandalone = 'true';
+          })();
+          </script>
+          '''
+          html = html.replace("</head>", guard + "\n</head>", 1)
+
+          dst = Path("standalone-dist/TinkerMatt-Standalone-v0.8.6.html")
+          dst.write_text(html, encoding="utf-8")
+          src.unlink()
+
+          # Sanity checks: all app JS/CSS must be embedded in this file.
+          assert dst.stat().st_size > 200_000, f"Unexpectedly small standalone build: {dst.stat().st_size} bytes"
+          assert not re.search(r'<script\b[^>]+src=', html, flags=re.I), 'External script tag remained'
+          assert not re.search(r'<link\b[^>]+rel=["\']stylesheet["\']', html, flags=re.I), 'External stylesheet remained'
+          print(f"Standalone HTML ready: {dst} ({dst.stat().st_size / 1024 / 1024:.2f} MiB)")
+
+      - name: Upload standalone HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: TinkerMatt-Standalone-v0.8.6
+          path: standalone-dist/TinkerMatt-Standalone-v0.8.6.html
+          if-no-files-found: error
+          retention-days: 30
