@@ -43,17 +43,18 @@ import "./v079";
 import "./v080";
 import "./v081";
 import "./v086";
+import "./v087";
 
 const version = document.querySelector<HTMLElement>(".version");
 const applyVersion = () => {
-  if (version) version.textContent = "v0.8.6";
+  if (version) version.textContent = "v0.8.7";
 };
 applyVersion();
 queueMicrotask(applyVersion);
 requestAnimationFrame(applyVersion);
 
 const status = document.querySelector<HTMLElement>("#status");
-if (status) status.textContent = "TinkerMatt v0.8.6 listo.";
+if (status) status.textContent = "TinkerMatt v0.8.7 listo.";
 
 document.documentElement.classList.remove("tm-booting");
 document.getElementById("tm-atomic-boot-style")?.remove();
