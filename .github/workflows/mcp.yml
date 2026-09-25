@@ -6,6 +6,10 @@ on:
     paths:
       - "mcp-server/**"
       - ".github/workflows/mcp.yml"
+  pull_request:
+    paths:
+      - "mcp-server/**"
+      - ".github/workflows/mcp.yml"
   workflow_dispatch:
 
 jobs:
