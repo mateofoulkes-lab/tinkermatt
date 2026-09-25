@@ -1,23 +1,26 @@
 {
   "name": "tinkermatt-mcp-server",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index-v51.js",
-    "dev": "tsx src/index-v51.ts"
+    "build": "tsc -p tsconfig.json && vite build --config vite.app.config.ts",
+    "start": "node dist/index-v52.js",
+    "dev": "tsx src/index-v52.ts"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
     "@modelcontextprotocol/node": "2.0.0",
     "@modelcontextprotocol/server": "2.0.0",
     "ws": "^8.18.3",
-    "zod": "^4.1.11"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
     "@types/ws": "^8.18.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "vite-plugin-singlefile": "^2.3.0"
   }
 }
