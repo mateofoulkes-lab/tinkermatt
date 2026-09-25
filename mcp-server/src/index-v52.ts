@@ -7,7 +7,8 @@ import {
 } from "@modelcontextprotocol/ext-apps/server";
 import * as z from "zod/v4";
 
-const APP_RESOURCE_URI = "ui://tinkermatt/dashboard.html";
+// Version the UI URI deliberately: ChatGPT treats resource URIs as template cache keys.
+const APP_RESOURCE_URI = "ui://tinkermatt/dashboard-v2.html";
 const READ_SECURITY = [{ type: "oauth2", scopes: ["tinkermatt.read"] }];
 const readOnly = {
   readOnlyHint: true,
@@ -40,10 +41,26 @@ const baseRegisterTool = (McpServer.prototype as any).registerTool;
             uri: APP_RESOURCE_URI,
             mimeType: RESOURCE_MIME_TYPE,
             text: await readFile(new URL("./mcp-app.html", import.meta.url), "utf8"),
+            _meta: {
+              ui: {
+                prefersBorder: true,
+              },
+            },
           },
         ],
       }),
     );
+
+    const dashboardMeta = {
+      securitySchemes: READ_SECURITY,
+      ui: {
+        resourceUri: APP_RESOURCE_URI,
+        visibility: ["model", "app"],
+      },
+      // ChatGPT compatibility alias. Keep both until every host is fully on MCP Apps UI metadata.
+      "openai/outputTemplate": APP_RESOURCE_URI,
+      "openai/widgetAccessible": true,
+    };
 
     const dashboardConfig: any = {
       title: "Open TinkerMatt dashboard",
@@ -52,10 +69,7 @@ const baseRegisterTool = (McpServer.prototype as any).registerTool;
       inputSchema: z.object({}),
       annotations: readOnly,
       securitySchemes: READ_SECURITY,
-      _meta: {
-        securitySchemes: READ_SECURITY,
-        ui: { resourceUri: APP_RESOURCE_URI },
-      },
+      _meta: dashboardMeta,
     };
 
     registerAppTool(server, "tinkermatt_dashboard", dashboardConfig, async () => {
@@ -71,7 +85,7 @@ const baseRegisterTool = (McpServer.prototype as any).registerTool;
       inputSchema: z.toJSONSchema(z.object({})),
       annotations: readOnly,
       securitySchemes: READ_SECURITY,
-      _meta: dashboardConfig._meta,
+      _meta: dashboardMeta,
     };
 
     const protocolServer = server.server;
